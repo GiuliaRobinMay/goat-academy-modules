@@ -110,10 +110,11 @@ const Store = {
     return c.all ? Math.round((c.done / c.all) * 100) : 0;
   },
   nextUp() {
+    /* dripped course: the next lesson is always the first one
+       that is not yet completed */
     return (
-      ALL_LESSONS.find((l) => this.status(l.id) === "watching") ||
-      ALL_LESSONS.find((l) => this.status(l.id) === "towatch") ||
-      ALL_LESSONS[0]
+      ALL_LESSONS.find((l) => this.status(l.id) !== "done") ||
+      ALL_LESSONS[ALL_LESSONS.length - 1]
     );
   },
 
