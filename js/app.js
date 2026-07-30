@@ -11,8 +11,6 @@ const UI = {
   activeLessonId: null,
 };
 
-const SPLIT_KEY = "goat-academy-modules:split";
-
 /* ---------- icons ---------- */
 const I = {
   home: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg>`,
@@ -51,15 +49,19 @@ function thumbHtml(l, w, cls) {
   if (u) return `<img class="${cls || ""}" src="${esc(u)}" alt="" loading="lazy">`;
   return `<div class="thumb-fallback ${cls || ""}">🐐</div>`;
 }
+/* clean branded tile — calm gradient, lesson number, subtle goat */
+function tileHtml(l, cls) {
+  const h = 146 + ((l.index * 9) % 24);
+  return `<div class="tile ${cls || ""}" style="background:linear-gradient(135deg,hsl(${h},45%,15%),hsl(${h + 16},55%,8%))">
+    <span class="tile-num">${l.num || "•"}</span><span class="tile-goat">🐐</span>
+  </div>`;
+}
 function fmtDate(iso) {
   try {
     return new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
   } catch (e) {
     return "";
   }
-}
-function typeChips(l) {
-  return l.types.map((t) => `<span class="chip ${t}">${t}</span>`).join("");
 }
 function statusDot(status) {
   return `<span class="status-dot ${status}" title="${STATUS_LABEL[status]}">${status === "done" ? I.check : ""}</span>`;
@@ -114,35 +116,6 @@ function openLesson(id) {
 }
 
 /* =============================================================
-   Shell (topbar)
-   ============================================================= */
-
-function renderShell(route) {
-  const notesCount = Store.notesList().length;
-  const pct = Store.percentDone();
-
-  $("#topbar").innerHTML = `
-    <div class="topbar-brand">
-      <span class="topbar-logo">🐐</span>
-      <div class="topbar-title">
-        <span class="kicker">${esc(BRAND.network)}</span>
-        <h1>${esc(BRAND.course)}</h1>
-      </div>
-    </div>
-    <nav class="topbar-nav">
-      <button class="${route.page === "home" ? "active" : ""}" data-nav="#/home">${I.home} Dashboard</button>
-      <button class="${route.page === "notes" ? "active" : ""}" data-nav="#/notes">
-        ${I.notes} My notes ${notesCount ? `<span class="badge">${notesCount}</span>` : ""}
-      </button>
-    </nav>
-    <div class="progress-pill" title="${pct}% completed">
-      <span class="bar"><i style="width:${pct}%"></i></span> ${pct}%
-    </div>`;
-
-  $$("#topbar [data-nav]").forEach((b) => (b.onclick = () => go(b.dataset.nav)));
-}
-
-/* =============================================================
    Dashboard
    ============================================================= */
 
@@ -180,8 +153,12 @@ function renderHome() {
           const done = lessons.filter((l) => Store.status(l.id) === "done").length;
           const p = lessons.length ? Math.round((done / lessons.length) * 100) : 0;
           const locked = sectionLocked(s);
+          const completed = done === lessons.length;
+          const frontier = ALL_LESSONS[unlockIdx()];
+          const active = !completed && !locked && frontier.sectionId === s.id;
           return `
-          <div class="glass section-card ${locked ? "locked-section" : ""}" data-sec="${s.id}">
+          <div class="glass section-card ${locked ? "locked-section" : ""} ${active ? "active-section" : ""} ${completed ? "done-section" : ""}" data-sec="${s.id}">
+            ${completed ? `<span class="sec-check">${I.check}</span>` : ""}
             <div class="tag">➽ ${esc(s.tag)}</div>
             <h4>${esc(s.title)}</h4>
             <div class="blurb">${esc(s.blurb || "")}</div>
@@ -189,7 +166,9 @@ function renderHome() {
             <div class="count">${
               locked
                 ? `🔒 Unlocks as you complete the previous modules`
-                : `<b>${done}</b> / ${lessons.length} lessons completed`
+                : completed
+                  ? `All ${lessons.length} lessons completed`
+                  : `<b>${done}</b> / ${lessons.length} lessons completed`
             }</div>
           </div>`;
         }).join("")}
@@ -200,7 +179,7 @@ function renderHome() {
       <section class="glass side-card">
         <h3>Next up</h3>
         <div class="nextup-lesson" id="nextup">
-          ${thumbHtml(next, 240)}
+          ${tileHtml(next)}
           <div class="t">
             <div class="part">${esc(next.partTag)}</div>
             <div class="name">${esc(next.title)}</div>
@@ -270,9 +249,8 @@ function lessonCardHtml(l) {
   <div class="lesson-card ${UI.activeLessonId === l.id ? "active" : ""} ${locked ? "locked" : ""}"
        data-lesson="${l.id}" ${locked ? `title="${LOCK_HINT}"` : ""}>
     <div class="thumb-wrap">
-      ${thumbHtml(l, 480)}
-      <span class="num">${l.num ? l.num : "•"}</span>
-      <span class="type-chip">${l.types.join(" + ")}</span>
+      ${tileHtml(l)}
+      <span class="type-chip">Lesson</span>
       <span class="status-wrap">${locked ? `<span class="status-lock">${I.lock}</span>` : statusDot(st)}</span>
       ${hasNote && !locked ? `<span class="note-flag" title="You have notes on this lesson">${I.pen}</span>` : ""}
     </div>
@@ -287,10 +265,9 @@ function lessonRowHtml(l) {
   return `
   <div class="lesson-row ${UI.activeLessonId === l.id ? "active" : ""} ${locked ? "locked" : ""}"
        data-lesson="${l.id}" ${locked ? `title="${LOCK_HINT}"` : ""}>
-    ${thumbHtml(l, 240)}
+    ${tileHtml(l)}
     <div>
-      <div class="name">${l.num ? l.num + " · " : ""}${esc(l.title)}</div>
-      <div class="meta">${typeChips(l)}</div>
+      <div class="name">${esc(l.title)}</div>
     </div>
     <div class="right">
       ${hasNote && !locked ? `<span class="note-ico" title="Notes">${I.pen}</span>` : ""}
@@ -365,42 +342,6 @@ function renderSectionList(section) {
   $$("#course-list [data-filter]").forEach((b) => (b.onclick = () => { UI.filter = b.dataset.filter; renderSectionList(section); }));
   $$("#course-list [data-view]").forEach((b) => (b.onclick = () => { UI.view = b.dataset.view; renderSectionList(section); }));
   $$("#course-list [data-lesson]").forEach(bindLessonCard);
-}
-
-/* ---------- resizable split (opens ~50/50, drag to adjust) ---------- */
-
-function initSplit() {
-  const layout = $("#course-layout");
-  const handle = $("#split-handle");
-  if (!layout || !handle) return;
-
-  let ratio = parseFloat(localStorage.getItem(SPLIT_KEY));
-  if (!(ratio >= 0.28 && ratio <= 0.68)) ratio = 0.5;
-  const apply = () => layout.style.setProperty("--split", (ratio * 100).toFixed(2) + "%");
-  apply();
-
-  let dragging = false;
-  handle.addEventListener("pointerdown", (e) => {
-    dragging = true;
-    handle.classList.add("dragging");
-    document.body.classList.add("resizing");
-    handle.setPointerCapture(e.pointerId);
-  });
-  handle.addEventListener("pointermove", (e) => {
-    if (!dragging) return;
-    const rect = layout.getBoundingClientRect();
-    ratio = Math.min(0.68, Math.max(0.28, (e.clientX - rect.left) / rect.width));
-    apply();
-  });
-  const end = () => {
-    if (!dragging) return;
-    dragging = false;
-    handle.classList.remove("dragging");
-    document.body.classList.remove("resizing");
-    try { localStorage.setItem(SPLIT_KEY, String(ratio)); } catch (e) {}
-  };
-  handle.addEventListener("pointerup", end);
-  handle.addEventListener("pointercancel", end);
 }
 
 /* ---------- player pane ---------- */
@@ -547,7 +488,6 @@ function renderLessonPane(l) {
       renderLessonPane(l);
       renderSectionList(section);
       renderSectionHead(section);
-      renderShell(currentRoute());
     };
   });
 
@@ -562,7 +502,6 @@ function renderLessonPane(l) {
       if (Store.status(l.id) === "towatch") {
         Store.setStatus(l.id, "watching");
         renderSectionList(section);
-        renderShell(currentRoute());
         const seg = $$("#player-pane [data-status]");
         seg.forEach((s) => (s.className = s.dataset.status === "watching" ? "on-watching" : ""));
       }
@@ -576,7 +515,6 @@ function renderLessonPane(l) {
       if (Store.status(l.id) === "towatch") {
         Store.setStatus(l.id, "watching");
         renderSectionList(section);
-        renderShell(currentRoute());
       }
       const wrap = ov.closest(".player-media");
       wrap.innerHTML = `<iframe src="${esc(wrap.dataset.embed)}" allow="encrypted-media; fullscreen" allowfullscreen></iframe>`;
@@ -603,7 +541,6 @@ function renderLessonPane(l) {
       saveState.textContent = "Saved ✓";
       saveState.classList.add("saved");
       updateWc();
-      renderShell(currentRoute());
       renderSectionList(section);
     }, 600);
   };
@@ -623,7 +560,6 @@ function renderLessonPane(l) {
       Store.saveNote(l.id, "", "");
       saveState.textContent = "Cleared";
       updateWc();
-      renderShell(currentRoute());
       renderSectionList(section);
     }
   };
@@ -679,14 +615,12 @@ function renderSection(route) {
     <div class="section-head-bar" id="section-head"></div>
     <div class="course-layout" id="course-layout">
       <div class="list-pane" id="course-list"></div>
-      <div class="split-handle" id="split-handle" title="Drag to resize"></div>
       <div class="player-pane" id="player-pane"></div>
     </div>`;
 
   renderSectionHead(section);
   renderSectionList(section);
   renderLessonPane(lesson);
-  initSplit();
 
   if (route.lessonId && window.matchMedia("(max-width: 1020px)").matches) {
     requestAnimationFrame(() => $("#player-pane").scrollIntoView({ behavior: "smooth", block: "start" }));
@@ -782,7 +716,6 @@ function printNotes(lessonIds) {
 
 function render() {
   const route = currentRoute();
-  renderShell(route);
   if (route.page === "home") renderHome();
   else if (route.page === "section") renderSection(route);
   else renderNotes();
