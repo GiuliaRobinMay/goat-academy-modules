@@ -49,11 +49,22 @@ function thumbHtml(l, w, cls) {
   if (u) return `<img class="${cls || ""}" src="${esc(u)}" alt="" loading="lazy">`;
   return `<div class="thumb-fallback ${cls || ""}">🐐</div>`;
 }
-/* clean branded tile — calm gradient, lesson number, subtle goat */
+/* branded tile — calm gradient + subtle market-chart motif */
+const TILE_PATHS = [
+  "M0 46 L14 40 L28 43 L42 31 L56 35 L70 24 L84 28 L100 14",
+  "M0 42 L16 45 L30 34 L44 38 L58 26 L72 30 L86 18 L100 22",
+  "M0 47 L12 39 L26 42 L40 33 L54 36 L66 25 L80 29 L100 10",
+  "M0 40 L15 43 L30 36 L45 39 L60 28 L74 32 L88 20 L100 24",
+];
 function tileHtml(l, cls) {
-  const h = 146 + ((l.index * 9) % 24);
-  return `<div class="tile ${cls || ""}" style="background:linear-gradient(135deg,hsl(${h},45%,15%),hsl(${h + 16},55%,8%))">
-    <span class="tile-num">${l.num || "•"}</span><span class="tile-goat">🐐</span>
+  const h = 148 + ((l.index * 7) % 22);
+  const path = TILE_PATHS[l.index % TILE_PATHS.length];
+  return `<div class="tile ${cls || ""}" style="background:linear-gradient(150deg,hsl(${h},42%,16%),hsl(${h + 14},55%,7%))">
+    <svg class="tile-chart" viewBox="0 0 100 56" preserveAspectRatio="none" aria-hidden="true">
+      <path d="${path} L100 56 L0 56 Z" fill="hsla(${h},70%,60%,0.1)"/>
+      <path d="${path}" fill="none" stroke="hsla(${h},75%,62%,0.5)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+    </svg>
+    <span class="tile-num">${l.num || "•"}</span>
   </div>`;
 }
 function fmtDate(iso) {
@@ -615,7 +626,7 @@ function renderSection(route) {
     <div class="section-head-bar" id="section-head"></div>
     <div class="course-layout" id="course-layout">
       <div class="list-pane" id="course-list"></div>
-      <div class="player-pane" id="player-pane"></div>
+      <div class="player-col"><div class="player-pane" id="player-pane"></div></div>
     </div>`;
 
   renderSectionHead(section);
