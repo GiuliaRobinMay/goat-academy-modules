@@ -74,6 +74,18 @@ function fmtDate(iso) {
     return "";
   }
 }
+function fmtStamp(iso) {
+  try {
+    const d = new Date(iso);
+    return (
+      d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) +
+      " · " +
+      d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
+    );
+  } catch (e) {
+    return "";
+  }
+}
 function statusDot(status) {
   return `<span class="status-dot ${status}" title="${STATUS_LABEL[status]}">${status === "done" ? I.check : ""}</span>`;
 }
@@ -255,7 +267,7 @@ function renderHome() {
 function lessonCardHtml(l) {
   const st = Store.status(l.id);
   const locked = isLocked(l);
-  const hasNote = !!Store.note(l.id);
+  const hasNote = Store.hasNotes(l.id);
   return `
   <div class="lesson-card ${UI.activeLessonId === l.id ? "active" : ""} ${locked ? "locked" : ""}"
        data-lesson="${l.id}" ${locked ? `title="${LOCK_HINT}"` : ""}>
@@ -272,7 +284,7 @@ function lessonCardHtml(l) {
 function lessonRowHtml(l) {
   const st = Store.status(l.id);
   const locked = isLocked(l);
-  const hasNote = !!Store.note(l.id);
+  const hasNote = Store.hasNotes(l.id);
   return `
   <div class="lesson-row ${UI.activeLessonId === l.id ? "active" : ""} ${locked ? "locked" : ""}"
        data-lesson="${l.id}" ${locked ? `title="${LOCK_HINT}"` : ""}>
@@ -377,10 +389,11 @@ function mediaHtml(l, block, main) {
     ${main ? thumbHtml(l, 1100, "poster") : thumbHtml(l, 800, "poster")}
     <div class="play-overlay" data-open="${esc(l.mighty.url)}">
       <div class="play-btn">${I.play}</div>
-      <span class="hint">Watch in the Academy</span>
     </div>
   </div>`;
 }
+
+const WATCHED_TAG = `<span class="watched-tag">${I.check} Watched — next lesson unlocked</span>`;
 
 function renderLessonPane(l) {
   const pane = $("#player-pane");
@@ -391,14 +404,9 @@ function renderLessonPane(l) {
     return;
   }
 
-  const st = Store.status(l.id);
-  const note = Store.note(l.id);
   const videos = l.blocks.filter((b) => b.type === "video");
   const texts = l.blocks.filter((b) => b.type === "text" || b.type === "image");
   const tools = l.blocks.filter((b) => b.type === "tool");
-  const prev = ALL_LESSONS[l.index - 1];
-  const next = ALL_LESSONS[l.index + 1];
-  const nextLocked = next && isLocked(next);
 
   const textHtml = texts
     .map((b) =>
@@ -414,23 +422,13 @@ function renderLessonPane(l) {
     <div class="player-body">
       <div class="lesson-kicker">Lesson ${l.index + 1} of ${ALL_LESSONS.length} · ${esc(l.partTag)}</div>
       <h2>${esc(l.title)}</h2>
-      ${l.description ? `<p class="desc">${esc(l.description)}</p>` : ""}
-      <div class="player-toolbar">
-        <div class="status-seg">
-          ${["towatch", "watching", "done"]
-            .map(
-              (s) => `<button data-status="${s}" class="${st === s ? "on-" + s : ""}">
-                <span class="dot"></span>${STATUS_LABEL[s]}</button>`
-            )
-            .join("")}
-        </div>
-        <div class="nav-btns">
-          <button class="btn btn-ghost btn-sm" data-goto="${prev ? prev.id : ""}" ${prev ? "" : "disabled"}>${I.arrowL} Prev</button>
-          <button class="btn btn-ghost btn-sm" ${nextLocked ? `disabled title="${LOCK_HINT}"` : `data-goto="${next ? next.id : ""}"`} ${next ? "" : "disabled"}>
-            ${nextLocked ? I.lock + " Finish to unlock" : "Next " + I.arrowR}
-          </button>
-        </div>
-      </div>
+      <div id="watch-state">${
+        Store.status(l.id) === "done"
+          ? WATCHED_TAG
+          : videos.length
+            ? ""
+            : `<button class="btn btn-primary btn-sm" id="mark-done" style="margin-top:12px">${I.check} Mark lesson as done</button>`
+      }</div>
       ${
         videos.length > 1
           ? `<div class="extra-media">${videos.slice(1).map((b) => mediaHtml(l, b, false)).join("")}</div>`
@@ -442,7 +440,7 @@ function renderLessonPane(l) {
   <section class="glass notes-card">
     <div class="head">
       <h3>${I.pen} My notes</h3>
-      <span class="save-state" id="save-state">${note ? "Saved " + fmtDate(note.updatedAt) : "Autosaves as you type"}</span>
+      <span class="save-state" id="save-state">Autosaves as you type</span>
     </div>
     <div class="note-toolbar" id="note-toolbar">
       <button data-cmd="bold" title="Bold"><b>B</b></button>
@@ -455,12 +453,10 @@ function renderLessonPane(l) {
       <span class="sep"></span>
       <button data-cmd="removeFormat" title="Clear formatting">✕</button>
     </div>
-    <div class="note-editor" id="note-editor" contenteditable="true"
-         data-placeholder="Jot down your elaborate notes for this lesson — key levels, rules, aha-moments…">${note ? note.html : ""}</div>
+    <div class="note-entries" id="note-entries"></div>
     <div class="foot">
+      <button class="btn btn-primary btn-sm" id="add-note">${I.pen} Add note</button>
       <button class="btn btn-ghost btn-sm" id="print-note">${I.print} Print these notes</button>
-      <button class="btn btn-ghost btn-sm" id="clear-note">${I.trash} Clear</button>
-      <span class="wc" id="note-wc"></span>
     </div>
   </section>
 
@@ -492,88 +488,107 @@ function renderLessonPane(l) {
 
   const section = sectionById(l.sectionId);
 
-  /* status segmented control — completing a lesson unlocks the next */
-  $$("#player-pane [data-status]").forEach((b) => {
-    b.onclick = () => {
-      Store.setStatus(l.id, b.dataset.status);
-      renderLessonPane(l);
+  /* watching the video is what completes the lesson and unlocks the
+     next one. Interim trigger: the play click. The tech team swaps this
+     for the Mighty tracked-video completion event via the Headless API. */
+  const markWatched = () => {
+    if (Store.status(l.id) !== "done") {
+      Store.setStatus(l.id, "done");
       renderSectionList(section);
       renderSectionHead(section);
-    };
-  });
+      $("#watch-state").innerHTML = WATCHED_TAG;
+    }
+  };
 
-  /* prev / next */
-  $$("#player-pane [data-goto]").forEach((b) => {
-    if (b.dataset.goto) b.onclick = () => openLesson(b.dataset.goto);
-  });
-
-  /* mighty play → open post in the Academy; auto-mark as watching */
+  /* mighty play → open the lesson post (native playback comes with the
+     Headless API hookup) */
   $$("#player-pane [data-open]").forEach((ov) => {
     ov.onclick = () => {
-      if (Store.status(l.id) === "towatch") {
-        Store.setStatus(l.id, "watching");
-        renderSectionList(section);
-        const seg = $$("#player-pane [data-status]");
-        seg.forEach((s) => (s.className = s.dataset.status === "watching" ? "on-watching" : ""));
-      }
+      markWatched();
       window.open(ov.dataset.open, "_blank", "noopener");
     };
   });
 
-  /* fathom embeds load on click (keeps the page light) */
+  /* fathom embeds load & play in place */
   $$("#player-pane [data-fathom]").forEach((ov) => {
     ov.onclick = () => {
-      if (Store.status(l.id) === "towatch") {
-        Store.setStatus(l.id, "watching");
-        renderSectionList(section);
-      }
+      markWatched();
       const wrap = ov.closest(".player-media");
       wrap.innerHTML = `<iframe src="${esc(wrap.dataset.embed)}" allow="encrypted-media; fullscreen" allowfullscreen></iframe>`;
     };
   });
 
-  /* notes editor */
-  const editor = $("#note-editor");
-  const saveState = $("#save-state");
-  const wc = $("#note-wc");
-  const updateWc = () => {
-    const words = (editor.innerText.trim().match(/\S+/g) || []).length;
-    wc.textContent = words ? words + " word" + (words === 1 ? "" : "s") : "";
-  };
-  updateWc();
+  /* lessons without a video complete via the button or by opening a tool */
+  const md = $("#mark-done");
+  if (md) md.onclick = markWatched;
+  $$("#player-pane .tool-item").forEach((t) => t.addEventListener("click", markWatched));
 
-  let t;
-  editor.oninput = () => {
-    saveState.textContent = "Saving…";
-    saveState.classList.remove("saved");
-    clearTimeout(t);
-    t = setTimeout(() => {
-      Store.saveNote(l.id, editor.innerHTML, editor.innerText);
-      saveState.textContent = "Saved ✓";
-      saveState.classList.add("saved");
-      updateWc();
-      renderSectionList(section);
-    }, 600);
-  };
-
+  /* formatting toolbar acts on the focused entry */
   $$("#note-toolbar [data-cmd]").forEach((b) => {
     b.onmousedown = (e) => e.preventDefault(); // keep editor selection
-    b.onclick = () => {
-      editor.focus();
-      document.execCommand(b.dataset.cmd, false, b.dataset.val || null);
-    };
+    b.onclick = () => document.execCommand(b.dataset.cmd, false, b.dataset.val || null);
   });
 
-  $("#print-note").onclick = () => printNotes([l.id]);
-  $("#clear-note").onclick = () => {
-    if (!editor.innerText.trim() || confirm("Clear your notes for this lesson?")) {
-      editor.innerHTML = "";
-      Store.saveNote(l.id, "", "");
-      saveState.textContent = "Cleared";
-      updateWc();
-      renderSectionList(section);
-    }
+  renderNoteEntries(l);
+  $("#add-note").onclick = () => {
+    Store.addEntry(l.id);
+    renderNoteEntries(l);
+    const editors = $$("#note-entries .note-editor");
+    if (editors.length) editors[editors.length - 1].focus();
   };
+  $("#print-note").onclick = () => printNotes([l.id]);
+}
+
+/* journal entries — each one carries its own timestamp */
+function renderNoteEntries(l) {
+  const wrap = $("#note-entries");
+  const entries = Store.entries(l.id);
+
+  wrap.innerHTML = entries.length
+    ? entries
+        .map(
+          (e) => `
+      <div class="note-entry-item" data-entry="${e.id}">
+        <div class="ne-head">
+          <span class="ne-stamp">${esc(fmtStamp(e.createdAt))}</span>
+          <button class="ne-del" title="Delete this note">${I.trash}</button>
+        </div>
+        <div class="note-editor" contenteditable="true" data-placeholder="Write your note…">${e.html}</div>
+      </div>`
+        )
+        .join("")
+    : `<div class="notes-empty">No notes yet — hit “Add note” to start your journal for this lesson.</div>`;
+
+  const saveState = $("#save-state");
+  $$("#note-entries .note-entry-item").forEach((item) => {
+    const entryId = item.dataset.entry;
+    const editor = $(".note-editor", item);
+
+    let t;
+    editor.oninput = () => {
+      saveState.textContent = "Saving…";
+      saveState.classList.remove("saved");
+      clearTimeout(t);
+      t = setTimeout(() => {
+        Store.saveEntry(l.id, entryId, editor.innerHTML, editor.innerText);
+        saveState.textContent = "Saved ✓";
+        saveState.classList.add("saved");
+        renderSectionList(sectionById(l.sectionId));
+      }, 600);
+    };
+
+    $(".ne-del", item).onclick = () => {
+      const entry = Store.entries(l.id).find((e) => e.id === entryId);
+      const stamp = entry ? fmtStamp(entry.createdAt) : "";
+      if (
+        confirm(`⚠️ Delete this note (${stamp})?\n\nThis permanently deletes the note. It cannot be undone.`)
+      ) {
+        Store.deleteEntry(l.id, entryId);
+        renderNoteEntries(l);
+        renderSectionList(sectionById(l.sectionId));
+      }
+    };
+  });
 }
 
 function renderSectionHead(section) {
@@ -644,11 +659,12 @@ function renderSection(route) {
 
 function renderNotes() {
   const notes = Store.notesList();
+  const totalEntries = notes.reduce((n, x) => n + x.entries.length, 0);
   $("#page").innerHTML = `
     <div class="notes-page-head">
       <div>
         <h2>My notes</h2>
-        <div class="sub">${notes.length ? `${notes.length} lesson${notes.length === 1 ? "" : "s"} with notes — keep them, print them, own them.` : "Everything you write while watching lives here."}</div>
+        <div class="sub">${notes.length ? `${totalEntries} note${totalEntries === 1 ? "" : "s"} across ${notes.length} lesson${notes.length === 1 ? "" : "s"} — keep them, print them, own them.` : "Everything you write while watching lives here."}</div>
       </div>
       <div class="actions">
         ${notes.length ? `<button class="btn btn-primary" id="print-all">${I.print} Print all notes</button>` : ""}
@@ -659,21 +675,22 @@ function renderNotes() {
       ${
         notes.length
           ? notes
-              .map(
-                ({ lesson, note }) => `
+              .map(({ lesson, entries }) => {
+                const latest = entries[entries.length - 1];
+                return `
         <section class="glass note-entry">
           <div class="top">
             <span class="where">➽ ${esc(lesson.sectionTag)} · ➧ ${esc(lesson.partTag)}</span>
-            <span class="when">Updated ${fmtDate(note.updatedAt)}</span>
+            <span class="when">${entries.length} note${entries.length === 1 ? "" : "s"} · last ${fmtStamp(latest.updatedAt)}</span>
           </div>
           <h4>${esc(lesson.title)}</h4>
-          <div class="excerpt">${esc(note.text).slice(0, 400)}</div>
+          <div class="excerpt">${esc(latest.text).slice(0, 400)}</div>
           <div class="actions">
             <button class="btn btn-ghost btn-sm" data-goto="${lesson.id}">${I.pen} Open lesson & edit</button>
             <button class="btn btn-ghost btn-sm" data-print="${lesson.id}">${I.print} Print</button>
           </div>
-        </section>`
-              )
+        </section>`;
+              })
               .join("")
           : `<div class="glass empty"><div class="big">📝</div>No notes yet.<br>Open a lesson and start writing — everything autosaves.</div>`
       }
@@ -691,30 +708,41 @@ function renderNotes() {
    ============================================================= */
 
 function printNotes(lessonIds) {
-  const entries = lessonIds
-    .map((id) => ({ lesson: lessonById(id), note: Store.note(id) }))
-    .filter((e) => e.lesson && e.note);
+  const sheets = lessonIds
+    .map((id) => ({
+      lesson: lessonById(id),
+      entries: Store.entries(id).filter((e) => e.text && e.text.trim()),
+    }))
+    .filter((x) => x.lesson && x.entries.length);
 
-  if (!entries.length) {
+  if (!sheets.length) {
     alert("No notes to print yet — write something first ✍️");
     return;
   }
 
+  const totalEntries = sheets.reduce((n, x) => n + x.entries.length, 0);
   const today = new Date().toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
   $("#print-sheet").innerHTML = `
     <div class="ph">
       <div class="brand">GOAT <span>ACADEMY</span></div>
       <div class="meta">${esc(BRAND.course)} · ${esc(Store.member.name)}'s notes · ${esc(today)}</div>
     </div>
-    <div class="intro">${entries.length} lesson note${entries.length === 1 ? "" : "s"} exported from the ${esc(BRAND.course)} member app.</div>
-    ${entries
+    <div class="intro">${totalEntries} note${totalEntries === 1 ? "" : "s"} across ${sheets.length} lesson${sheets.length === 1 ? "" : "s"}, exported from the ${esc(BRAND.course)} member app.</div>
+    ${sheets
       .map(
-        ({ lesson, note }) => `
+        ({ lesson, entries }) => `
       <div class="pnote">
         <div class="where">${esc(lesson.sectionTag)} · ${esc(lesson.partTag)} · ${esc(lesson.partTitle)}</div>
         <h3>${esc(lesson.title)}</h3>
-        <div class="when">Last updated ${fmtDate(note.updatedAt)}</div>
-        <div class="body">${note.html}</div>
+        ${entries
+          .map(
+            (e) => `
+        <div class="pentry">
+          <div class="when">${esc(fmtStamp(e.createdAt))}</div>
+          <div class="body">${e.html}</div>
+        </div>`
+          )
+          .join("")}
       </div>`
       )
       .join("")}`;

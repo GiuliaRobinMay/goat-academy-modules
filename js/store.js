@@ -83,6 +83,15 @@ const Store = {
     this.member = await ACTIVE_ADAPTER.getMember();
     const loaded = await ACTIVE_ADAPTER.load();
     this.state = Object.assign({ statuses: {}, notes: {}, lastLessonId: null }, loaded);
+    /* migrate pre-journal notes ({html,text,updatedAt}) to entry lists */
+    Object.keys(this.state.notes).forEach((k) => {
+      const n = this.state.notes[k];
+      if (n && !Array.isArray(n.entries)) {
+        this.state.notes[k] = {
+          entries: [{ id: "m" + Date.now(), html: n.html || "", text: n.text || "", createdAt: n.updatedAt, updatedAt: n.updatedAt }],
+        };
+      }
+    });
   },
 
   _persist() {
@@ -124,21 +133,46 @@ const Store = {
     this._persist();
   },
 
-  /* ---- notes ---- */
-  note(lessonId) {
-    return this.state.notes[lessonId] || null;
+  /* ---- notes: journal of time-stamped entries per lesson ---- */
+  entries(lessonId) {
+    const n = this.state.notes[lessonId];
+    return n && Array.isArray(n.entries) ? n.entries : [];
   },
-  saveNote(lessonId, html, text) {
-    const empty = !text || !text.trim();
-    if (empty) delete this.state.notes[lessonId];
-    else this.state.notes[lessonId] = { html, text, updatedAt: new Date().toISOString() };
+  addEntry(lessonId) {
+    const now = new Date().toISOString();
+    const entry = { id: "n" + Date.now() + Math.random().toString(36).slice(2, 6), html: "", text: "", createdAt: now, updatedAt: now };
+    if (!this.state.notes[lessonId] || !Array.isArray(this.state.notes[lessonId].entries)) {
+      this.state.notes[lessonId] = { entries: [] };
+    }
+    this.state.notes[lessonId].entries.push(entry);
+    this._persist();
+    return entry;
+  },
+  saveEntry(lessonId, entryId, html, text) {
+    const entry = this.entries(lessonId).find((e) => e.id === entryId);
+    if (!entry) return;
+    entry.html = html;
+    entry.text = text;
+    entry.updatedAt = new Date().toISOString();
     this._persist();
     document.dispatchEvent(new CustomEvent("goat:notes"));
   },
+  deleteEntry(lessonId, entryId) {
+    const n = this.state.notes[lessonId];
+    if (!n) return;
+    n.entries = n.entries.filter((e) => e.id !== entryId);
+    if (!n.entries.length) delete this.state.notes[lessonId];
+    this._persist();
+    document.dispatchEvent(new CustomEvent("goat:notes"));
+  },
+  hasNotes(lessonId) {
+    return this.entries(lessonId).some((e) => e.text && e.text.trim());
+  },
+  /* lessons that have at least one non-empty entry */
   notesList() {
-    return ALL_LESSONS.filter((l) => this.state.notes[l.id]).map((l) => ({
-      lesson: l,
-      note: this.state.notes[l.id],
-    }));
+    return ALL_LESSONS.map((l) => {
+      const entries = this.entries(l.id).filter((e) => e.text && e.text.trim());
+      return { lesson: l, entries };
+    }).filter((x) => x.entries.length);
   },
 };
