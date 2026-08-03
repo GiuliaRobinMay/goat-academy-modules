@@ -273,16 +273,17 @@ function lessonCardHtml(l) {
   const st = Store.status(l.id);
   const locked = isLocked(l);
   const hasNote = Store.hasNotes(l.id);
+  /* custom artwork carries its own title — the card is the thumbnail */
   return `
-  <div class="lesson-card ${UI.activeLessonId === l.id ? "active" : ""} ${locked ? "locked" : ""}"
-       data-lesson="${l.id}" ${locked ? `title="${LOCK_HINT}"` : ""}>
+  <div class="lesson-card ${l.customThumb ? "art" : ""} ${UI.activeLessonId === l.id ? "active" : ""} ${locked ? "locked" : ""}"
+       data-lesson="${l.id}" title="${locked ? LOCK_HINT : esc(l.title)}">
     <div class="thumb-wrap">
       ${tileHtml(l)}
-      <span class="type-chip">Lesson</span>
+      ${l.customThumb ? "" : `<span class="type-chip">Lesson</span>`}
       <span class="status-wrap">${locked ? `<span class="status-lock">${I.lock}</span>` : statusDot(st)}</span>
       ${hasNote && !locked ? `<span class="note-flag" title="You have notes on this lesson">${I.pen}</span>` : ""}
     </div>
-    <div class="body"><div class="name">${esc(l.title)}</div></div>
+    ${l.customThumb ? "" : `<div class="body"><div class="name">${esc(l.title)}</div></div>`}
   </div>`;
 }
 

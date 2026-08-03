@@ -501,10 +501,18 @@ img { max-width: 100%; display: block; }
   border: 1px solid var(--glass-border);
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
   position: relative;
 }
-.lesson-card:hover { transform: translateY(-2px); border-color: var(--glass-border-hi); }
+/* neon backlight on hover */
+.lesson-card:not(.locked):hover {
+  transform: translateY(-2px);
+  border-color: rgba(52, 226, 138, 0.65);
+  box-shadow:
+    0 0 18px rgba(52, 226, 138, 0.4),
+    0 0 60px rgba(52, 226, 138, 0.18),
+    0 8px 30px rgba(0, 0, 0, 0.35);
+}
 .lesson-card.active {
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent), 0 10px 30px rgba(52, 226, 138, 0.18);
