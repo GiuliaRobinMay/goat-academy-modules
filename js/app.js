@@ -41,7 +41,9 @@ const esc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 function thumbUrl(l, w) {
-  return l.thumb ? l.thumb + "&w=" + (w || 640) : null;
+  if (!l.thumb) return null;
+  /* imgix URLs take a width param; local/static images are served as-is */
+  return l.thumb.includes("?") ? l.thumb + "&w=" + (w || 640) : l.thumb;
 }
 function thumbHtml(l, w, cls) {
   const u = thumbUrl(l, w);
