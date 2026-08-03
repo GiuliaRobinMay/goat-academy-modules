@@ -801,6 +801,13 @@ const GDRIVE_VIDEOS = {
   "advanced-stop-loss": "1YK8YN1FqV76uEEXMH16ozgxlfE6UmsBG",
 };
 
+/* Custom lesson thumbnails (player posters), hosted in the shared
+   Drive folder https://drive.google.com/drive/folders/1mBDSC7MD2kvO79MGt1jCnxL45HoPmpnh
+   Relocate together with the videos for production. */
+const GDRIVE_THUMBS = {
+  "market-crashes": "1dzv_03yEJuxvN99OQp7Y04xK3OKjUC5M",
+};
+
 /* ---------- derived helpers ---------- */
 
 const ALL_LESSONS = [];
@@ -820,6 +827,9 @@ COURSE_SECTIONS.forEach((section) => {
           b.fileId = GDRIVE_VIDEOS[lesson.id];
         }
       });
+      if (GDRIVE_THUMBS[lesson.id]) {
+        lesson.thumb = "https://drive.google.com/thumbnail?id=" + GDRIVE_THUMBS[lesson.id] + "&sz=w1280";
+      }
       ALL_LESSONS.push(lesson);
     });
   });
