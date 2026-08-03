@@ -69,7 +69,6 @@ function tileHtml(l, cls) {
       <path d="${path} L100 56 L0 56 Z" fill="hsla(${h},70%,60%,0.1)"/>
       <path d="${path}" fill="none" stroke="hsla(${h},75%,62%,0.5)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
     </svg>
-    <span class="tile-num">${l.num || "•"}</span>
   </div>`;
 }
 function fmtDate(iso) {
@@ -273,17 +272,16 @@ function lessonCardHtml(l) {
   const st = Store.status(l.id);
   const locked = isLocked(l);
   const hasNote = Store.hasNotes(l.id);
-  /* custom artwork carries its own title — the card is the thumbnail */
+  /* cards are pure thumbnails — the artwork carries the title
+     (full title on hover via tooltip) */
   return `
-  <div class="lesson-card ${l.customThumb ? "art" : ""} ${UI.activeLessonId === l.id ? "active" : ""} ${locked ? "locked" : ""}"
+  <div class="lesson-card ${UI.activeLessonId === l.id ? "active" : ""} ${locked ? "locked" : ""}"
        data-lesson="${l.id}" title="${locked ? LOCK_HINT : esc(l.title)}">
     <div class="thumb-wrap">
       ${tileHtml(l)}
-      ${l.customThumb ? "" : `<span class="type-chip">Lesson</span>`}
       <span class="status-wrap">${locked ? `<span class="status-lock">${I.lock}</span>` : statusDot(st)}</span>
       ${hasNote && !locked ? `<span class="note-flag" title="You have notes on this lesson">${I.pen}</span>` : ""}
     </div>
-    ${l.customThumb ? "" : `<div class="body"><div class="name">${esc(l.title)}</div></div>`}
   </div>`;
 }
 
