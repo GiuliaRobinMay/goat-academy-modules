@@ -581,6 +581,42 @@ const COURSE_SECTIONS = [
   },
 ];
 
+/* ---------- interim video hosting: Google Drive ----------
+   The original course videos live in this shared Drive folder,
+   which is ALSO the developer handoff package:
+   https://drive.google.com/drive/folders/1mNmHSScoiJKgPukpi0g6rnPQjTh4jI87
+
+   PRODUCTION (tech team): relocate these files to the final video
+   host (Bunny / Vimeo / Mux — gives domain locking + end-of-video
+   completion events) and swap the fileId entries below for the new
+   embed URLs, or wire native Mighty playback via lesson.mighty.*.
+   Removing a lesson's entry here falls back to opening its Mighty
+   post. */
+const GDRIVE_VIDEOS = {
+  "market-crashes": "1jYv8gjHOtTNyG9mbzkX6i9u2heNRxMvS",
+  "busy-fools": "1ehs3e4z0TYf3uGYawqiyw32tBIp5Es6B",
+  "ibkr-registration": "1HUKAmV3X3--3a8g3yROB-gd7w53WdrKf",
+  "thinkorswim-help": "1MnfA8p_LVQEnNQzkP8bkI2cQ-AlsiiB-",
+  "tradevision-setup": "1zwiy6sj0sXXaU5E0XDv0vOd1HxLFp-LB",
+  "pattern-overview": "1h2pcIWDBlPicLRDkhYn2Duzewu6lVwkE",
+  "base-pattern": "1LZpNxoNm22em8GabBdQjr5pSW8ZMmbru",
+  "climbing-pattern": "1P3lEAieU8hJfh8k_aKXOlhtaZsbjprpo",
+  "tired-pattern": "1IUZ2HiVN8dNxkyhWGx1T4ll0JY097JQj",
+  "downhill-pattern": "1a_IoECVRggjxbc9Kn9TZ3V7XKnXFHfnW",
+  "sector-breakouts": "1auPOCnrUUMttZ2WT1DDuIzKJ6vy_r_VZ",
+  "when-to-buy-investors": "1E2Fa0BsxUwM2QpGtih_qlnhJBRjMknlp",
+  "buy-stop-limit": "1AQpHHldtuiDta30cWt8EZygD2FlgJ6Hb",
+  "buying-at-close": "1Jr4931sd3-iUsZqBUR-27hgpyqE8sGW7",
+  "what-to-buy-entry": "1YBm4r-o_LKFBdAg94Pv7N2vhhdU0zLFT",
+  "position-sizing": "1NnsLyVDcCADuTk39e0qA5-ggFtpfG5-u",
+  "selling-profit-taking": "1VEMQqpFck6OiEQSTHOBPjPRkMZlJU0tL",
+  "when-to-sell-investor": "1vXSYxVLcrywQGQPOfTlFSdOeS5q_h-Sy",
+  "trading-donts": "1iLV6_6G3PKimIaj5luz4K7zrfTdMXplt",
+  "wsp-checklist": "1lEdsQPHP3gHOpHaa11T1wVLrTIXGROq8",
+  "screener-setup": "1u3xHBIWgXozkZTMh7Qn9VMhveI6Om1NG",
+  "advanced-stop-loss": "1YK8YN1FqV76uEEXMH16ozgxlfE6UmsBG",
+};
+
 /* ---------- derived helpers ---------- */
 
 const ALL_LESSONS = [];
@@ -594,6 +630,12 @@ COURSE_SECTIONS.forEach((section) => {
       lesson.partTitle = part.title;
       lesson.index = ALL_LESSONS.length;
       lesson.types = [...new Set(lesson.blocks.map((b) => (b.type === "image" ? "text" : b.type)))];
+      lesson.blocks.forEach((b) => {
+        if (b.type === "video" && b.provider === "mighty" && GDRIVE_VIDEOS[lesson.id]) {
+          b.provider = "gdrive";
+          b.fileId = GDRIVE_VIDEOS[lesson.id];
+        }
+      });
       ALL_LESSONS.push(lesson);
     });
   });

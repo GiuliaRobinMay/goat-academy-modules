@@ -370,6 +370,19 @@ function renderSectionList(section) {
 /* ---------- player pane ---------- */
 
 function mediaHtml(l, block, main) {
+  /* interim Google Drive hosting — branded poster, click loads the
+     Drive player in place (see GDRIVE_VIDEOS in data.js) */
+  if (block.provider === "gdrive") {
+    return `
+    <div class="player-media" data-embed="https://drive.google.com/file/d/${esc(block.fileId)}/preview"
+         data-mighty-post-id="${esc(l.mighty.postId || "")}"
+         data-mighty-video-id="${esc(l.mighty.videoId || "")}">
+      ${main ? thumbHtml(l, 1100, "poster") : thumbHtml(l, 800, "poster")}
+      <div class="play-overlay" data-fathom>
+        <div class="play-btn">${I.play}</div>
+      </div>
+    </div>`;
+  }
   if (block.provider === "fathom") {
     return `
     <div class="player-media" data-embed="${esc(block.embed)}">

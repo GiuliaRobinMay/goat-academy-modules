@@ -61,11 +61,17 @@ The UI never touches persistence directly — everything goes through
    `lesson.mighty.videoId` (Mighty tracked-video id) and
    `lesson.mighty.asset` (video.mn.co URL). App status values:
    `towatch` (default) / `watching` / `done`.
-4. **Playback** — the player containers expose
-   `data-mighty-post-id`, `data-mighty-video-id`, `data-mighty-asset`
-   attributes. Replace the click-through overlay with the native tracked
-   player when available; play events should set status to `watching`,
-   completion events to `done`.
+4. **Videos (interim → production)** — the original course videos live
+   in a shared Google Drive folder (see `GDRIVE_VIDEOS` in `js/data.js`
+   for the folder link and the lesson → fileId manifest). The app
+   currently plays them via Drive's embed player. For production:
+   download the folder, upload to the final video host (Bunny / Vimeo /
+   Mux recommended — they provide domain locking and end-of-video
+   events), and swap the manifest entries for the new embed URLs.
+   Wire the host's "video ended" event to `Store.setStatus(lessonId,
+   "done")` — that replaces the interim play-click completion trigger.
+   The player containers also expose `data-mighty-post-id` /
+   `data-mighty-video-id` if you prefer native Mighty tracked playback.
 5. **Notes** — the Headless API is read-oriented, so member notes need a
    small companion endpoint (or member profile field). Shape stored today:
    `{ [lessonId]: { html, text, updatedAt } }`.
