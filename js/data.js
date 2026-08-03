@@ -806,6 +806,8 @@ const GDRIVE_VIDEOS = {
    Relocate together with the videos for production. */
 const GDRIVE_THUMBS = {
   "market-crashes": "1dzv_03yEJuxvN99OQp7Y04xK3OKjUC5M",
+  "busy-fools": "1ZI-Z8tDlmbqECAgqUj-rK9bftJPh_m_b",
+  "ibkr-registration": "1CqRPZjCjXvozk7bdp7Omntz8RtBn0Bwy",
 };
 
 /* ---------- derived helpers ---------- */
