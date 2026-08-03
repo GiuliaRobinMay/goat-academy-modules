@@ -829,6 +829,7 @@ COURSE_SECTIONS.forEach((section) => {
       });
       if (GDRIVE_THUMBS[lesson.id]) {
         lesson.thumb = "https://drive.google.com/thumbnail?id=" + GDRIVE_THUMBS[lesson.id] + "&sz=w1280";
+        lesson.customThumb = true; /* custom artwork also shows on the lesson cards */
       }
       ALL_LESSONS.push(lesson);
     });

@@ -58,6 +58,10 @@ const TILE_PATHS = [
   "M0 40 L15 43 L30 36 L45 39 L60 28 L74 32 L88 20 L100 24",
 ];
 function tileHtml(l, cls) {
+  /* lessons with custom artwork show it on the cards too */
+  if (l.customThumb) {
+    return `<div class="tile ${cls || ""}"><img class="tile-img" src="${esc(thumbUrl(l, 640))}" alt="" loading="lazy"></div>`;
+  }
   const h = 148 + ((l.index * 7) % 22);
   const path = TILE_PATHS[l.index % TILE_PATHS.length];
   return `<div class="tile ${cls || ""}" style="background:linear-gradient(150deg,hsl(${h},42%,16%),hsl(${h + 14},55%,7%))">
