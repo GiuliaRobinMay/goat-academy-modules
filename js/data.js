@@ -341,8 +341,86 @@ const COURSE_SECTIONS = [
             thumb: "https://media1-production-mightynetworks.imgix.net/asset/e709ff31-232f-4cb6-b7bf-f6323cb71754/Screenshot_2024-10-28_010927.png?ixlib=rails-4.2.0&fm=jpg&q=75&auto=format&w=1400&h=1400&fit=max&impolicy=ResizeCrop&constraint=downsize&aspect=fit",
             mighty: { postId: "96731460", url: "https://friends.goatacademy.org/posts/academy-modules-workbook" },
             blocks: [
-              { type: "text", html: `<p>The workbook is where the program becomes <strong>your</strong> program. Use it alongside every module: note your setups, your rules and your reviews — then bring it to coaching calls.</p>` },
-              { type: "tool", label: "Open the Workbook", kind: "Google Doc", url: "https://docs.google.com/document/d/1FA7RZRRtc1ZPWgiF35XEMRNiwReUkB62P9uSmuFKjJI/edit?tab=t.0" },
+              { type: "text", html: `<p>The <strong>Wall Street Protocol Workbook</strong> is the written companion to the whole program — every pattern, rule and checklist in one place. Read it alongside the modules and bring it to your coaching calls. The highlights are below; the full workbook with Felix's chart sketches is in the Google Doc.</p>` },
+              {
+                type: "text",
+                title: "The 4 Patterns",
+                html: `
+                  <p>There are four predictable patterns in the stock market:</p>
+                  <ol>
+                    <li><strong>Base Pattern ("Winston before a hike")</strong> — sideways movement that can last a while. Volume dries up, then spikes near the end as frustrated bag holders sell. The longer the base, the bigger the upside potential.</li>
+                    <li><strong>Climbing Pattern ("Winston climbing")</strong> — upward movement, like a dog eagerly climbing a mountain. Typically faster than the base.</li>
+                    <li><strong>Tired Pattern (top consolidation)</strong> — sideways movement at the top of the climb. A rest before the next move.</li>
+                    <li><strong>"It's All Downhill From Here" Pattern</strong> — downward movement, usually faster than the climb up.</li>
+                  </ol>`,
+              },
+              {
+                type: "text",
+                title: "When to Buy — Sector Breakout & 2nd Chance",
+                html: `
+                  <ul>
+                    <li>The whole <strong>sector</strong> should be bullish and breaking out — not just the stock (use stockcharts.com).</li>
+                    <li>Look for zigzag patterns, resistance zones and clear breakout points; enter as the stock exceeds previous highs.</li>
+                    <li>Breakout volume should be <strong>2× or more</strong>; the stock should cross the 50-day moving average upward, with Mansfield Relative Strength confirming.</li>
+                    <li>Never buy randomly mid-trend because you feel late — wait for clear breakout signals with volume confirmation.</li>
+                  </ul>`,
+              },
+              {
+                type: "text",
+                title: "How to Buy — Buy Stop-Limit with GTC",
+                html: `
+                  <ul>
+                    <li>Set a <strong>buy stop</strong> slightly above the previous high (e.g. $104 if the high was $103.50) so a real breakout triggers your entry.</li>
+                    <li>Make it <strong>Good Till Cancelled</strong>, not a day order.</li>
+                    <li>Use a <strong>stop-limit</strong>: triggers at your stop price but caps what you pay — set the limit 25–50 cents above the stop to stay protected against gap-ups while still getting filled.</li>
+                    <li>Plan orders in advance (e.g. on Sunday) — less stress, no constant chart-watching.</li>
+                  </ul>`,
+              },
+              {
+                type: "text",
+                title: "What to Buy + Perfect Entry Point",
+                html: `
+                  <ul>
+                    <li><strong>Market first:</strong> follow the broad trend, never fight it; avoid entering after sharp drops.</li>
+                    <li><strong>Overhead resistance:</strong> review a 2-year chart — heavy resistance and bagholders above the price are red flags; calculate the realistic gain to resistance and ask if it's worth it.</li>
+                    <li><strong>Ideal setup:</strong> a long base (up to 2 years) with strong, increasing breakout volume.</li>
+                    <li><strong>Bonus pattern:</strong> the inverse head &amp; shoulders — shakes out weak holders and breaks out on volume.</li>
+                  </ul>`,
+              },
+              {
+                type: "text",
+                title: "Position Sizing & Portfolio Risk",
+                html: `
+                  <ul>
+                    <li>Beginners / difficult markets: <strong>5–10% per position</strong>. Experienced traders in strong markets: up to 20–25%, only when market, sector, setup and volume all line up.</li>
+                    <li>Keep total portfolio risk at <strong>1–2%</strong>: e.g. $100,000 × 1% = $1,000 max risk; a 10% position with a 6% stop risks just 0.6%.</li>
+                    <li>Stop losses: standard <strong>4–6%</strong>, maximum 8%.</li>
+                    <li>Reduce or stop trading in difficult months, choppy markets, corrections and bear markets.</li>
+                  </ul>`,
+              },
+              {
+                type: "text",
+                title: "Selling & Stop Losses",
+                html: `
+                  <ul>
+                    <li>Set the stop <strong>immediately</strong> when entering: just below the prior low, 4–6% below the breakout, or below the 150-day moving average.</li>
+                    <li>Avoid round numbers — set stops ~1/8 below them (e.g. $8.87, not $9.00) and a few cents below support. Not too tight, or you get shaken out.</li>
+                    <li><strong>Trailing:</strong> move the stop up under new higher lows only after price makes new highs.</li>
+                    <li><strong>Advanced:</strong> draw a trend line across 3+ clear lows and set stops slightly below it; optionally split the position (tighter + wider stop). Adjust weekly, not daily.</li>
+                  </ul>`,
+              },
+              {
+                type: "text",
+                title: "Trading DON'Ts",
+                html: `
+                  <ul>
+                    <li>Never buy against the market or sector trend — no "gems" in bearish sectors.</li>
+                    <li>Never try to guess bottoms because something looks cheap — wait for the breakout.</li>
+                    <li>No stocks below (or with a declining) 50-day moving average, or with heavy overhead resistance.</li>
+                    <li>Don't chase — avoid buying 8+ days after a breakout, and pass on weak-volume breakouts (you want 2×, ideally 4–6×).</li>
+                  </ul>`,
+              },
+              { type: "tool", label: "Wall Street Protocol Workbook", kind: "Google Doc — full version with chart sketches", url: "https://docs.google.com/document/d/1FA7RZRRtc1ZPWgiF35XEMRNiwReUkB62P9uSmuFKjJI/edit?tab=t.0" },
             ],
           },
           {
@@ -363,8 +441,59 @@ const COURSE_SECTIONS = [
             thumb: "https://media1-production-mightynetworks.imgix.net/asset/db8a4466-c617-4b71-8d1d-fdd1e5874a39/Screenshot_2024-10-28_054347.png?ixlib=rails-4.2.0&fm=jpg&q=75&auto=format&w=1400&h=1400&fit=max&impolicy=ResizeCrop&constraint=downsize&aspect=fit",
             mighty: { postId: "96731464", url: "https://friends.goatacademy.org/posts/academy-modules-check-this-for-every-trade" },
             blocks: [
-              { type: "text", html: `<p>Before <em>any</em> order goes in, run the checklist. It takes two minutes and it is the difference between trading a system and trading a feeling.</p>` },
-              { type: "tool", label: "Pre-Trade Checklist", kind: "Google Doc", url: "https://docs.google.com/document/d/1Pbc8L9LUcvDYuFTYHiAXYwACwYIXF8C_u6Ako431f8o/edit?tab=t.0#heading=h.babh6r5cd9uy" },
+              { type: "text", html: `<p>Before <em>any</em> order goes in, run <strong>The Wall Street Protocol Ultimate Checklist</strong>. It takes two minutes and it is the difference between trading a system and trading a feeling.</p>` },
+              {
+                type: "text",
+                title: "Entry criteria — ALL must be true ✓",
+                html: `
+                  <p><strong>1 · Breakout confirmation</strong></p>
+                  <ul>
+                    <li>Price breaks above a clear resistance zone (3 or more highs), validated by multiple prior touches.</li>
+                    <li>The breakout is clean and decisive — not choppy.</li>
+                    <li>The sector is in an uptrend (never go against the industry trend).</li>
+                  </ul>
+                  <p><strong>2 · Moving average conditions</strong></p>
+                  <ul>
+                    <li>Price is above the 50-day MA, the 50-day MA slopes upward, and price is above the 150-day MA.</li>
+                  </ul>
+                  <p><strong>3 · Volume analysis</strong></p>
+                  <ul>
+                    <li>Breakout volume ≥ 2× the previous week's average: (today's volume ÷ 5-day average volume) ≥ 2.</li>
+                  </ul>
+                  <p><strong>4 · Mansfield Relative Strength</strong></p>
+                  <ul>
+                    <li>In an uptrend, or recently flipped from negative to positive.</li>
+                  </ul>`,
+              },
+              {
+                type: "text",
+                title: "Exit rules — ANY one triggers a sale ⚠️",
+                html: `
+                  <p><strong>Initial stop loss</strong></p>
+                  <ul>
+                    <li>Set the stop just below the closest prior reaction low. No clear low? Take 4–6% below the breakout price, round down, and set the stop below the round number (e.g. for $10 → $9.75).</li>
+                  </ul>
+                  <p><strong>Trend line management</strong></p>
+                  <ul>
+                    <li>Once a trend line is confirmed by 3 clear points: move the stop to 1 point below the trend line for 50% of the position, keep the original stop for the other 50%.</li>
+                  </ul>
+                  <p><strong>Hard stop rules</strong></p>
+                  <ul>
+                    <li>Price below the 150-day MA → <strong>immediate sell</strong>.</li>
+                    <li>Confirmed trend line breached → sell 50% of the position.</li>
+                    <li>Original stop hit → sell the remaining position.</li>
+                  </ul>`,
+              },
+              {
+                type: "text",
+                title: "Pre-trade & weekly routine",
+                html: `
+                  <p><strong>Before the trade:</strong> position size calculated (max 2% risk per trade), stop loss and profit target identified, risk:reward at least 2:1 — then screenshot the chart with marked levels, record entry and stop, note the volume confirmation and the Mansfield reading.</p>
+                  <p><strong>Every week:</strong> still above the 50-day and 150-day MA? Trend line intact? Volume still showing institutional support? Update trailing and trend-line stops.</p>
+                  <p><strong>The rules behind the rules:</strong> never average down on losers, don't fight the market trend, stick to the rules — no exceptions — and document every trade decision.</p>
+                  <p><em>"Everyone is a genius until the market crashes…" — protection of capital is priority #1.</em></p>`,
+              },
+              { type: "tool", label: "The Wall Street Protocol Ultimate Checklist", kind: "Google Doc — printable checklist", url: "https://docs.google.com/document/d/1Pbc8L9LUcvDYuFTYHiAXYwACwYIXF8C_u6Ako431f8o/edit?tab=t.0#heading=h.babh6r5cd9uy" },
             ],
           },
         ],
