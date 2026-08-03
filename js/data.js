@@ -117,7 +117,22 @@ const COURSE_SECTIONS = [
             description: "The framework: every chart lives in one of four patterns. Learn to name the market before you trade it.",
             thumb: "https://media1-production-mightynetworks.imgix.net/asset/082e3386-558b-41f7-9d4e-af49ef472a00/Banner_09.jpg?ixlib=rails-4.3.1&fm=jpg&q=75&auto=format",
             mighty: { postId: "96731434", videoId: "1729189753", asset: "https://video.mn.co/assets/105322299/overview.mkv", url: "https://friends.goatacademy.org/posts/academy-modules-1%EF%B8%8F%E2%83%A3-pattern-framework-overview" },
-            blocks: [{ type: "video", provider: "mighty" }],
+            blocks: [
+              { type: "video", provider: "mighty" },
+              {
+                type: "text",
+                title: "Key concepts from the Workbook",
+                html: `
+                  <p>There are <strong>four predictable patterns</strong> in the stock market — every chart you will ever look at lives in one of them:</p>
+                  <ol>
+                    <li><strong>Base Pattern</strong> ("Winston before a hike") — sideways movement.</li>
+                    <li><strong>Climbing Pattern</strong> ("Winston climbing") — upward movement.</li>
+                    <li><strong>Tired Pattern</strong> (top consolidation) — sideways at the top of the climb.</li>
+                    <li><strong>"It's All Downhill From Here" Pattern</strong> — downward movement.</li>
+                  </ol>
+                  <p>The next four lessons take them one by one — learn to name the pattern before you trade the chart.</p>`,
+              },
+            ],
           },
           {
             id: "base-pattern",
@@ -126,7 +141,20 @@ const COURSE_SECTIONS = [
             description: "Sideways consolidation — the launchpad. How to spot a base and what it tells you about what comes next.",
             thumb: "https://media1-production-mightynetworks.imgix.net/asset/ccf6a82a-ed87-45e6-a5e8-ca8f703ae8d9/Banner_10.jpg?ixlib=rails-4.3.1&fm=jpg&q=75&auto=format",
             mighty: { postId: "96731436", videoId: "1729223682", asset: "https://video.mn.co/assets/105350101/base_pattern.mkv", url: "https://friends.goatacademy.org/posts/academy-modules-2%EF%B8%8F%E2%83%A3-base-pattern" },
-            blocks: [{ type: "video", provider: "mighty" }],
+            blocks: [
+              { type: "video", provider: "mighty" },
+              {
+                type: "text",
+                title: "Key concepts from the Workbook",
+                html: `
+                  <p><strong>Base Pattern ("Winston before a hike")</strong> — think of Winston on the beach with his tummy in shallow water: he is going to sit there for a while and cool down.</p>
+                  <ul>
+                    <li>Represented by a <strong>sideways movement</strong> in the stock chart — and it can last for a while.</li>
+                    <li>Volume starts to dry up, then <strong>spikes near the end</strong> of the base as disgruntled bag holders get frustrated and sell.</li>
+                    <li><strong>The longer the base, the bigger the upside potential.</strong></li>
+                  </ul>`,
+              },
+            ],
           },
           {
             id: "climbing-pattern",
@@ -135,7 +163,19 @@ const COURSE_SECTIONS = [
             description: "The uptrend. Riding strength above the 50 SMA and knowing when the climb is healthy.",
             thumb: "https://media1-production-mightynetworks.imgix.net/asset/37d8d08c-defd-4687-8461-e3d4f03bd911/Banner_11.jpg?ixlib=rails-4.3.1&fm=jpg&q=75&auto=format",
             mighty: { postId: "96731438", videoId: "1729223815", asset: "https://video.mn.co/assets/105350195/climbing_pattern.mkv", url: "https://friends.goatacademy.org/posts/academy-modules-3%EF%B8%8F%E2%83%A3-climbing-pattern" },
-            blocks: [{ type: "video", provider: "mighty" }],
+            blocks: [
+              { type: "video", provider: "mighty" },
+              {
+                type: "text",
+                title: "Key concepts from the Workbook",
+                html: `
+                  <p><strong>Climbing Pattern ("Winston climbing")</strong></p>
+                  <ul>
+                    <li>Represented by an <strong>upward movement</strong> in the stock chart — like a dog eagerly climbing up a mountain.</li>
+                    <li>Typically <strong>faster than the base pattern</strong>.</li>
+                  </ul>`,
+              },
+            ],
           },
           {
             id: "tired-pattern",
@@ -144,7 +184,19 @@ const COURSE_SECTIONS = [
             description: "Momentum fading. The warning signs that a climb is running out of fuel.",
             thumb: "https://media1-production-mightynetworks.imgix.net/asset/751dab88-a1e8-49ad-b437-3ddac845a496/Banner_12.png?ixlib=rails-4.3.1&fm=jpg&q=75&auto=format",
             mighty: { postId: "96731439", videoId: "1729223895", asset: "https://video.mn.co/assets/105350272/tired_pattern.mkv", url: "https://friends.goatacademy.org/posts/academy-modules-4%EF%B8%8F%E2%83%A3-tired-pattern" },
-            blocks: [{ type: "video", provider: "mighty" }],
+            blocks: [
+              { type: "video", provider: "mighty" },
+              {
+                type: "text",
+                title: "Key concepts from the Workbook",
+                html: `
+                  <p><strong>Tired Pattern (or Top Consolidation Pattern)</strong></p>
+                  <ul>
+                    <li>Represented by <strong>sideways movement at the top of the climb</strong> — like a dog resting in a water-filled hole near the top of the mountain.</li>
+                    <li>A period of <strong>consolidation before the next move</strong>.</li>
+                  </ul>`,
+              },
+            ],
           },
           {
             id: "downhill-pattern",
@@ -153,7 +205,19 @@ const COURSE_SECTIONS = [
             description: "The downtrend. Why cash is a position — and how to stay out of falling markets.",
             thumb: "https://media1-production-mightynetworks.imgix.net/asset/dc70a3b9-14c0-4898-b115-b9e711dea2de/Banner_13.png?ixlib=rails-4.3.1&fm=jpg&q=75&auto=format",
             mighty: { postId: "96731441", videoId: "1729224223", asset: "https://video.mn.co/assets/105350566/downhill_pattern.mkv", url: "https://friends.goatacademy.org/posts/academy-modules-5%EF%B8%8F%E2%83%A3-downhill-pattern" },
-            blocks: [{ type: "video", provider: "mighty" }],
+            blocks: [
+              { type: "video", provider: "mighty" },
+              {
+                type: "text",
+                title: "Key concepts from the Workbook",
+                html: `
+                  <p><strong>"It's All Downhill From Here" Pattern</strong></p>
+                  <ul>
+                    <li>Represented by a <strong>downward movement</strong> in the stock chart — like a dog running quickly downhill.</li>
+                    <li>Usually <strong>faster than the upward climb</strong>.</li>
+                  </ul>`,
+              },
+            ],
           },
         ],
       },
@@ -180,7 +244,24 @@ const COURSE_SECTIONS = [
             description: "Using sector strength to time entries — and how to catch the second-chance entry when you miss the breakout.",
             thumb: "https://media1-production-mightynetworks.imgix.net/asset/6c957305-e4a5-4348-8966-8306feeba046/Banner_14.png?ixlib=rails-4.3.1&fm=jpg&q=75&auto=format",
             mighty: { postId: "96731443", videoId: "1729225227", asset: "https://video.mn.co/assets/105351359/sector_break_out_2nd_chance.mkv", url: "https://friends.goatacademy.org/posts/academy-modules-1%EF%B8%8F%E2%83%A3-sector-breakouts-second-chance-entries" },
-            blocks: [{ type: "video", provider: "mighty" }],
+            blocks: [
+              { type: "video", provider: "mighty" },
+              {
+                type: "text",
+                title: "Key concepts from the Workbook",
+                html: `
+                  <ul>
+                    <li><strong>Sector analysis</strong> — look at the entire sector, not just individual stocks. The whole sector should be bullish and breaking out (use tools like stockcharts.com).</li>
+                    <li><strong>Chart patterns</strong> — look for "zigzag" patterns with multiple highs and lows; identify resistance zones and breakout points.</li>
+                    <li><strong>Entry points</strong> — enter as the stock exceeds previous highs and breaks above resistance.</li>
+                    <li><strong>Volume</strong> — should increase significantly during breakouts, <strong>2× or more</strong>. High volume confirms the breakout's strength.</li>
+                    <li><strong>Moving averages</strong> — the stock should cross the 50-day moving average upward.</li>
+                    <li><strong>Mansfield Relative Strength</strong> — use the reading to confirm breakout strength.</li>
+                    <li><strong>Avoid random entries</strong> — don't buy mid-trend because you feel late; wait for clear breakout signals with volume confirmation.</li>
+                    <li><strong>Continuous analysis</strong> — keep reviewing sectors and stocks; be patient and wait for proper setups rather than forcing trades.</li>
+                  </ul>`,
+              },
+            ],
           },
           {
             id: "when-to-buy-investors",
@@ -206,7 +287,22 @@ const COURSE_SECTIONS = [
             description: "Setting a buy stop-limit order with GTC so the breakout triggers your entry automatically.",
             thumb: "https://media1-production-mightynetworks.imgix.net/asset/93dea9e6-71ac-4035-bcaf-1d8ddbee0367/Banner_16.png?ixlib=rails-4.3.1&fm=jpg&q=75&auto=format",
             mighty: { postId: "96731447", videoId: "1729225592", asset: "https://video.mn.co/assets/105351652/buy_stop_limit_order_with_gtc.mkv", url: "https://friends.goatacademy.org/posts/academy-modules-1%EF%B8%8F%E2%83%A3-buy-stop-limit-orders-gtc" },
-            blocks: [{ type: "video", provider: "mighty" }],
+            blocks: [
+              { type: "video", provider: "mighty" },
+              {
+                type: "text",
+                title: "Key concepts from the Workbook",
+                html: `
+                  <ul>
+                    <li><strong>Buy stop order</strong> — instead of watching the chart all day, set an order that triggers automatically when price reaches your level. Place it slightly above the previous high (e.g. $104 if the high was $103.50) so you catch a meaningful breakout, not a slight touch of resistance.</li>
+                    <li><strong>Good Till Cancelled (GTC)</strong> — use GTC instead of a day order so it stays active until you cancel it.</li>
+                    <li><strong>Stop-limit order</strong> — the advanced combination: triggers at your stop price but also caps the maximum you're willing to pay, protecting you from unexpected price jumps.</li>
+                    <li><strong>Limit price</strong> — set it 25–50 cents above the stop price: likely to fill, still protected from big unfavorable moves.</li>
+                    <li><strong>Plan ahead</strong> — set up your orders in advance (e.g. on a Sunday) for the coming week. Less stress, no constant monitoring.</li>
+                    <li><strong>Tools</strong> — Webull is very easy to use; most brokers offer the same functionality.</li>
+                  </ul>`,
+              },
+            ],
           },
           {
             id: "buying-at-close",
@@ -242,7 +338,38 @@ const COURSE_SECTIONS = [
             description: "Filtering for quality setups and defining the perfect entry point before you commit capital.",
             thumb: "https://media1-production-mightynetworks.imgix.net/asset/5426786e-c3ce-47a4-9c1b-fe9e538805ea/Banner_18.png?ixlib=rails-4.3.1&fm=jpg&q=75&auto=format",
             mighty: { postId: "96731450", videoId: "1730068916", asset: "https://video.mn.co/assets/106355428/what_to_buy.mkv", url: "https://friends.goatacademy.org/posts/academy-modules-1%EF%B8%8F%E2%83%A3-what-to-buy-perfect-entry-point" },
-            blocks: [{ type: "video", provider: "mighty" }],
+            blocks: [
+              { type: "video", provider: "mighty" },
+              {
+                type: "text",
+                title: "Key concepts from the Workbook",
+                html: `
+                  <h4>1 · Market & sector first</h4>
+                  <ul>
+                    <li>Check the overall market direction (S&amp;P 500, NASDAQ); avoid entering after significant drops and follow momentum — the broad market should be in an uptrend.</li>
+                    <li>Track sectors with stockcharts.com and the Dow Jones industry segments; watch the 50-day moving average.</li>
+                  </ul>
+                  <h4>2 · Overhead resistance</h4>
+                  <ul>
+                    <li>Review 2 years of chart history, identify resistance levels, and calculate the potential gain to resistance.</li>
+                    <li><strong>Red flags:</strong> heavy overhead resistance, many "bagholders" at higher prices, limited upside, recent high-volume trading above the current price.</li>
+                  </ul>
+                  <h4>3 · The ideal setup</h4>
+                  <ul>
+                    <li>Longer bases are better — up to 2 years of sideways base building; price exhaustion means sellers are depleted.</li>
+                    <li>Volume must confirm: strong breakout volume and an increasing trend.</li>
+                    <li><strong>Bonus pattern — inverse head &amp; shoulders:</strong> left shoulder, lower head, right shoulder, clear neckline, high-volume breakout. It shakes out weak holders and its popularity creates momentum.</li>
+                  </ul>
+                  <h4>4 · Is it worth it?</h4>
+                  <ul>
+                    <li>Example: price $11–12, resistance $14–15 → potential gain ~20%. Ask: is 20% enough? Are better setups available? What's the risk:reward?</li>
+                  </ul>
+                  <h4>The rules</h4>
+                  <ul>
+                    <li>Don't fight the market trend · avoid heavy resistance · look for clean breakouts · consider historical price action · wait for proper setups.</li>
+                  </ul>`,
+              },
+            ],
           },
           {
             id: "position-sizing",
@@ -251,7 +378,28 @@ const COURSE_SECTIONS = [
             description: "How much to buy: sizing positions so no single trade can hurt your portfolio.",
             thumb: "https://media1-production-mightynetworks.imgix.net/asset/478d87cf-d90f-4472-8d1f-b3219560b13c/Banner_19.png?ixlib=rails-4.3.1&fm=jpg&q=75&auto=format",
             mighty: { postId: "96731453", videoId: "1730053507", asset: "https://video.mn.co/assets/106340857/position_size.mkv", url: "https://friends.goatacademy.org/posts/academy-modules-2%EF%B8%8F%E2%83%A3-position-sizing-portfolio-risk" },
-            blocks: [{ type: "video", provider: "mighty" }],
+            blocks: [
+              { type: "video", provider: "mighty" },
+              {
+                type: "text",
+                title: "Key concepts from the Workbook",
+                html: `
+                  <h4>Position size guidelines</h4>
+                  <ul>
+                    <li><strong>Beginners / difficult markets:</strong> 5–10% per stock (even just 5%). Smaller positions keep emotions manageable — stability over gains.</li>
+                    <li><strong>Experienced traders in strong markets:</strong> up to 20–25% per trade, but only when everything lines up — market trending up, sector trending up, clean setup, strong volume, clear technical pattern.</li>
+                  </ul>
+                  <h4>Portfolio risk parameters</h4>
+                  <ul>
+                    <li>Aim for <strong>1–2% total portfolio risk</strong>. Example: $100,000 × 1% = $1,000 max risk; a 10% position ($10,000) with a 6% stop = $600 risk = 0.6% of the portfolio.</li>
+                    <li><strong>Stop losses:</strong> minimum 4%, standard 4–6%, maximum 8% — adjust to the chart and market conditions.</li>
+                  </ul>
+                  <h4>When to reduce or avoid trading</h4>
+                  <ul>
+                    <li>Difficult months (e.g. September), choppy or sideways markets, corrections, bear markets, or whenever market direction is unclear.</li>
+                  </ul>`,
+              },
+            ],
           },
         ],
       },
@@ -278,7 +426,29 @@ const COURSE_SECTIONS = [
             description: "The selling rules: taking profits without cutting winners short.",
             thumb: "https://media1-production-mightynetworks.imgix.net/asset/d34e01a1-6f74-4f33-9e72-3e785910dabb/Banner_21.png?ixlib=rails-4.3.1&fm=jpg&q=75&auto=format",
             mighty: { postId: "96731455", videoId: "1730068870", asset: "https://video.mn.co/assets/106355386/selling.mkv", url: "https://friends.goatacademy.org/posts/academy-modules-1%EF%B8%8F%E2%83%A3-selling-profit-taking" },
-            blocks: [{ type: "video", provider: "mighty" }],
+            blocks: [
+              { type: "video", provider: "mighty" },
+              {
+                type: "text",
+                title: "Key concepts from the Workbook",
+                html: `
+                  <h4>Basic rules for stop losses</h4>
+                  <ul>
+                    <li>Set the stop loss <strong>immediately</strong> when entering a trade.</li>
+                    <li>Initial placement: just below the prior low · 4–6% below the breakout price if there's no recent low · below the 150-day moving average.</li>
+                  </ul>
+                  <h4>Placement tips</h4>
+                  <ul>
+                    <li>Avoid round numbers — they act as support/resistance. Set stops ~1/8 below them (e.g. $8.87, not $9.00), and a few cents below support levels.</li>
+                    <li>Don't set stops too tight, or you'll get shaken out.</li>
+                  </ul>
+                  <h4>Moving stops up (trailing)</h4>
+                  <ul>
+                    <li><strong>Basic method:</strong> move the stop up to below recent lows when price makes new highs and clear higher lows form. Never move it up if price hasn't exceeded the recent high.</li>
+                    <li><strong>Advanced method (trend line):</strong> draw a trend line through at least 3 clear lows and set stops slightly below it. Optionally split the position — first half with a tighter stop near the trend line, second half wider below major support. Adjust weekly, not daily.</li>
+                  </ul>`,
+              },
+            ],
           },
           {
             id: "when-to-sell-investor",
@@ -314,7 +484,21 @@ const COURSE_SECTIONS = [
             description: "The mistakes that undo good trading — a checklist of what never to do.",
             thumb: "https://media1-production-mightynetworks.imgix.net/asset/5b30d638-5e1f-4dc7-a960-1a2f6ace5629/Banner_24.png?ixlib=rails-4.3.1&fm=jpg&q=75&auto=format",
             mighty: { postId: "96731458", videoId: "1730053139", asset: "https://video.mn.co/assets/106340572/donts.mkv", url: "https://friends.goatacademy.org/posts/academy-modules-3%EF%B8%8F%E2%83%A3-trading-donts" },
-            blocks: [{ type: "video", provider: "mighty" }],
+            blocks: [
+              { type: "video", provider: "mighty" },
+              {
+                type: "text",
+                title: "Key concepts from the Workbook",
+                html: `
+                  <ol>
+                    <li><strong>Never buy against market trends</strong> — don't buy a strong stock in a declining sector; no "swimming against the current".</li>
+                    <li><strong>Avoid underperforming sectors</strong> — don't hunt for "gems" in bearish sectors; the sector will drag even good stocks down.</li>
+                    <li><strong>Never try to guess market bottoms</strong> — "cheap" after a collapse is not a signal; wait for the breakout pattern.</li>
+                    <li><strong>Technical rules</strong> — no stocks below the 50-day moving average, no declining 50-day MA, no heavy overhead resistance.</li>
+                    <li><strong>Timing &amp; volume</strong> — don't chase 8+ days after a breakout, and pass on weak-volume breakouts. You want at least 2× normal volume; 4–6× is ideal.</li>
+                  </ol>`,
+              },
+            ],
           },
         ],
       },

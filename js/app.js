@@ -6,7 +6,6 @@
    ============================================================= */
 
 const UI = {
-  filter: "all",
   view: "grid",
   activeLessonId: null,
 };
@@ -299,11 +298,6 @@ function lessonRowHtml(l) {
   </div>`;
 }
 
-function lessonMatches(l) {
-  if (UI.filter !== "all" && Store.status(l.id) !== UI.filter) return false;
-  return true;
-}
-
 function bindLessonCard(el) {
   if (el.classList.contains("locked")) return;
   el.onclick = () => openLesson(el.dataset.lesson);
@@ -311,23 +305,11 @@ function bindLessonCard(el) {
 
 function renderSectionList(section) {
   const lessons = section.parts.flatMap((p) => p.lessons);
-  const counts = { all: lessons.length, towatch: 0, watching: 0, done: 0 };
-  lessons.forEach((l) => counts[Store.status(l.id)]++);
+  const done = lessons.filter((l) => Store.status(l.id) === "done").length;
 
-  const filters = [
-    { id: "all", label: "All", n: counts.all },
-    { id: "towatch", label: "To watch", n: counts.towatch, dot: "towatch" },
-    { id: "watching", label: "Watching", n: counts.watching, dot: "watching" },
-    { id: "done", label: "Completed", n: counts.done, dot: "done" },
-  ];
-
-  let any = false;
   const partsHtml = section.parts
-    .map((p) => {
-      const visible = p.lessons.filter(lessonMatches);
-      if (!visible.length) return "";
-      any = true;
-      return `
+    .map(
+      (p) => `
       <div class="course-part">
         <div class="part-head">
           <span class="ptag">➧ ${esc(p.tag)}</span>
@@ -336,33 +318,25 @@ function renderSectionList(section) {
         </div>
         ${
           UI.view === "grid"
-            ? `<div class="lesson-grid">${visible.map(lessonCardHtml).join("")}</div>`
-            : `<div class="lesson-list">${visible.map(lessonRowHtml).join("")}</div>`
+            ? `<div class="lesson-grid">${p.lessons.map(lessonCardHtml).join("")}</div>`
+            : `<div class="lesson-list">${p.lessons.map(lessonRowHtml).join("")}</div>`
         }
-      </div>`;
-    })
+      </div>`
+    )
     .join("");
 
   $("#course-list").innerHTML = `
     <div class="filter-bar">
-      ${filters
-        .map(
-          (f) => `
-        <button class="filter-pill ${UI.filter === f.id ? "active" : ""}" data-filter="${f.id}">
-          ${f.dot ? `<span class="dot ${f.dot}"></span>` : ""}${f.label} <span class="n">${f.n}</span>
-        </button>`
-        )
-        .join("")}
+      <span class="stat-pill"><b>${lessons.length}</b> Total lessons</span>
+      <span class="stat-pill done"><b>${done}</b> Completed</span>
+      <span class="stat-pill open"><b>${lessons.length - done}</b> Open</span>
       <div class="view-toggle">
         <button class="${UI.view === "grid" ? "active" : ""}" data-view="grid" title="Grid view">${I.grid}</button>
         <button class="${UI.view === "list" ? "active" : ""}" data-view="list" title="List view">${I.list}</button>
       </div>
     </div>
-    <div class="list-scroller">
-      ${any ? partsHtml : `<div class="glass empty"><div class="big">🐐</div>No lessons match this filter yet.</div>`}
-    </div>`;
+    <div class="list-scroller">${partsHtml}</div>`;
 
-  $$("#course-list [data-filter]").forEach((b) => (b.onclick = () => { UI.filter = b.dataset.filter; renderSectionList(section); }));
   $$("#course-list [data-view]").forEach((b) => (b.onclick = () => { UI.view = b.dataset.view; renderSectionList(section); }));
   $$("#course-list [data-lesson]").forEach(bindLessonCard);
 }
@@ -429,9 +403,16 @@ function renderLessonPane(l) {
     )
     .join("");
 
-  pane.innerHTML = `
+  /* no video → the lesson's image becomes the hero, reading comes first */
+  const heroHtml = videos.length
+    ? mediaHtml(l, videos[0], true)
+    : l.thumb
+      ? `<div class="player-media doc-hero">${thumbHtml(l, 1100, "poster")}</div>`
+      : "";
+
+  const playerCard = `
   <section class="glass player-card">
-    ${videos.length ? mediaHtml(l, videos[0], true) : ""}
+    ${heroHtml}
     <div class="player-body">
       <div class="lesson-kicker">Lesson ${l.index + 1} of ${ALL_LESSONS.length} · ${esc(l.partTag)}</div>
       <h2>${esc(l.title)}</h2>
@@ -448,8 +429,9 @@ function renderLessonPane(l) {
           : ""
       }
     </div>
-  </section>
+  </section>`;
 
+  const notesCard = `
   <section class="glass notes-card">
     <div class="head">
       <h3>${I.pen} My notes</h3>
@@ -471,15 +453,15 @@ function renderLessonPane(l) {
       <button class="btn btn-primary btn-sm" id="add-note">${I.pen} Add note</button>
       <button class="btn btn-ghost btn-sm" id="print-note">${I.print} Print these notes</button>
     </div>
-  </section>
+  </section>`;
 
-  ${textHtml ? `
+  const textCard = textHtml ? `
   <section class="glass content-card">
     <h3>${I.bookOpen} Lesson notes from Goat Academy</h3>
     <div class="rich">${textHtml}</div>
-  </section>` : ""}
+  </section>` : "";
 
-  ${tools.length ? `
+  const toolsCard = tools.length ? `
   <section class="glass content-card">
     <h3>${I.tool} Tools & resources</h3>
     <div class="tool-list">
@@ -497,7 +479,13 @@ function renderLessonPane(l) {
         )
         .join("")}
     </div>
-  </section>` : ""}`;
+  </section>` : "";
+
+  /* video lessons: notes sit right under the video.
+     document lessons: read first, then tools, notes last. */
+  pane.innerHTML = videos.length
+    ? playerCard + notesCard + textCard + toolsCard
+    : playerCard + textCard + toolsCard + notesCard;
 
   const section = sectionById(l.sectionId);
 
