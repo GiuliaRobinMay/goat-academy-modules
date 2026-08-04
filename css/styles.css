@@ -512,17 +512,48 @@ img { max-width: 100%; display: block; }
   display: inline-grid; place-items: center;
 }
 
-/* module blocks — highlighted dividers through the series */
-.module-block { margin-bottom: 34px; }
+/* module blocks — framed, collapsible sections of the series */
+.module-block {
+  margin-bottom: 30px;
+  border-bottom: 1px solid rgba(var(--accent-rgb), 0.28);
+  padding-bottom: 20px;
+}
+.module-block.closed { padding-bottom: 4px; }
 .module-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
   padding: 12px 0 12px;
   margin-bottom: 14px;
-  border-top: 2px solid rgba(var(--accent-rgb), 0.4);
+  border-top: 1px solid rgba(var(--accent-rgb), 0.35);
+  cursor: pointer;
+  user-select: none;
 }
+.module-block.closed .module-head { margin-bottom: 0; }
+.module-head .mh-bar {
+  width: 84px; height: 5px;
+  margin-left: auto;
+  border-radius: 99px;
+  background: rgba(127, 127, 127, 0.22);
+  overflow: hidden;
+  flex: none;
+}
+.module-head .mh-bar i {
+  display: block; height: 100%;
+  background: linear-gradient(90deg, var(--accent-deep), var(--accent));
+  border-radius: 99px;
+}
+.module-head .mh-toggle {
+  width: 26px; height: 26px;
+  border-radius: 8px;
+  display: grid; place-items: center;
+  color: var(--text-3);
+  transition: transform 0.18s ease, color 0.15s;
+  flex: none;
+}
+.module-head .mh-toggle svg { width: 15px; height: 15px; }
+.module-head:hover .mh-toggle { color: var(--accent); }
+.module-block.closed .mh-toggle { transform: rotate(-90deg); }
 .module-head .mh-num {
   font-size: 10px; font-weight: 800; letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -533,8 +564,15 @@ img { max-width: 100%; display: block; }
   color: var(--accent);
   white-space: nowrap;
 }
-.module-head .mh-title { font-size: 14.5px; font-weight: 800; letter-spacing: 0.01em; }
-.module-head .mh-progress { margin-left: auto; font-size: 11.5px; font-weight: 700; color: var(--text-3); }
+.module-head .mh-title {
+  font-size: 14.5px; font-weight: 800; letter-spacing: 0.01em;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.module-head .mh-progress { font-size: 11.5px; font-weight: 700; color: var(--text-3); flex: none; }
 
 /* section stat indicators (not filters) */
 .stat-pill {
@@ -1099,7 +1137,20 @@ img { max-width: 100%; display: block; }
    Settings (appbar gear) + theme picker
    ============================================================= */
 
-.appbar-actions { margin-left: auto; position: relative; }
+.appbar-actions { margin-left: auto; position: relative; display: flex; align-items: center; gap: 8px; }
+.notes-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 11px;
+  font-size: 12.5px; font-weight: 700;
+  color: #d9e6de;
+  border: 1px solid var(--hairline-strong);
+  background: rgba(255, 255, 255, 0.04);
+  transition: all 0.15s;
+}
+.notes-btn:hover { color: #fff; border-color: rgba(var(--accent-rgb), 0.5); }
+.notes-btn svg { width: 16px; height: 16px; }
 .settings-btn {
   width: 40px; height: 40px;
   border-radius: 11px;

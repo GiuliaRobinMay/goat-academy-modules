@@ -5,10 +5,20 @@
    is marked Completed.
    ============================================================= */
 
+const COLLAPSE_KEY = "goat-academy-modules:collapsed";
+
 const UI = {
   view: "grid",
   activeLessonId: null,
+  scrollToActive: false,
+  collapsed: (() => {
+    try { return new Set(JSON.parse(localStorage.getItem(COLLAPSE_KEY)) || []); } catch (e) { return new Set(); }
+  })(),
 };
+
+function saveCollapsed() {
+  try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify([...UI.collapsed])); } catch (e) {}
+}
 
 /* ---------- icons ---------- */
 const I = {
@@ -26,6 +36,7 @@ const I = {
   external: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h5v5"/><path d="M10 14 20 4"/><path d="M19 13v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>`,
   arrowL: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m14 6-6 6 6 6"/></svg>`,
   arrowR: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m10 6 6 6-6 6"/></svg>`,
+  chev: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`,
   trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/></svg>`,
   bookOpen: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h7a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5H2z"/><path d="M22 4h-7a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2.5H22z"/></svg>`,
   tool: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4.5 4.5 0 0 0-6 5.6L3 17.6V21h3.4l5.7-5.7a4.5 4.5 0 0 0 5.6-6L14.6 12l-2.6-2.6z"/></svg>`,
@@ -197,13 +208,18 @@ function renderCourseList() {
   const modulesHtml = COURSE_SECTIONS.map((s, si) => {
     const lessons = s.parts.flatMap((p) => p.lessons);
     const sDone = lessons.filter((l) => Store.status(l.id) === "done").length;
+    const sPct = lessons.length ? Math.round((sDone / lessons.length) * 100) : 0;
+    const closed = UI.collapsed.has(s.id);
     return `
-    <div class="module-block">
-      <div class="module-head">
+    <div class="module-block ${closed ? "closed" : ""}">
+      <div class="module-head" data-module="${s.id}" role="button" title="${closed ? "Expand" : "Collapse"} this module">
         <span class="mh-num">Module ${si + 1}</span>
         <span class="mh-title">${esc(s.tag)} · ${esc(s.title)}</span>
+        <span class="mh-bar"><i style="width:${sPct}%"></i></span>
         <span class="mh-progress">${sDone}/${lessons.length}</span>
+        <span class="mh-toggle">${I.chev}</span>
       </div>
+      <div class="module-body" ${closed ? "hidden" : ""}>
       ${s.parts
         .map(
           (p) => `
@@ -221,6 +237,7 @@ function renderCourseList() {
       </div>`
         )
         .join("")}
+      </div>
     </div>`;
   }).join("");
 
@@ -244,7 +261,7 @@ function renderCourseList() {
         <div class="sub">completed</div>
       </div>
       <div class="lh-actions">
-        <button class="btn btn-ghost btn-sm" data-nav="#/notes">${I.notes} My notes${notesCount ? ` <span class="lh-badge">${notesCount}</span>` : ""}</button>
+        <button class="btn btn-primary btn-sm" id="watch-next">${I.play} Watch next lesson</button>
         <div class="view-toggle">
           <button class="${UI.view === "grid" ? "active" : ""}" data-view="grid" title="Grid view">${I.grid}</button>
           <button class="${UI.view === "list" ? "active" : ""}" data-view="list" title="List view">${I.list}</button>
@@ -253,8 +270,23 @@ function renderCourseList() {
     </div>
     ${modulesHtml}`;
 
-  $$("#course-list [data-nav]").forEach((b) => (b.onclick = () => go(b.dataset.nav)));
-  $$("#course-list [data-view]").forEach((b) => (b.onclick = () => { UI.view = b.dataset.view; renderCourseList(); }));
+  $("#watch-next").onclick = () => {
+    const next = Store.nextUp();
+    UI.collapsed.delete(next.sectionId);
+    saveCollapsed();
+    UI.scrollToActive = true;
+    openLesson(next.id);
+  };
+  $$("#course-list .module-head").forEach((h) => {
+    h.onclick = () => {
+      const id = h.dataset.module;
+      if (UI.collapsed.has(id)) UI.collapsed.delete(id);
+      else UI.collapsed.add(id);
+      saveCollapsed();
+      renderCourseList();
+    };
+  });
+  $$("#course-list [data-view]").forEach((b) => (b.onclick = (e) => { e.stopPropagation(); UI.view = b.dataset.view; renderCourseList(); }));
   $$("#course-list [data-lesson]").forEach(bindLessonCard);
 }
 
@@ -633,7 +665,13 @@ function renderCourse(route) {
   renderLessonPane(lesson);
   initSplit();
 
-  if (route.lessonId && window.matchMedia("(max-width: 1020px)").matches) {
+  if (UI.scrollToActive) {
+    UI.scrollToActive = false;
+    requestAnimationFrame(() => {
+      const card = $("#course-list .lesson-card.active");
+      if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  } else if (route.lessonId && window.matchMedia("(max-width: 1020px)").matches) {
     requestAnimationFrame(() => $("#player-pane").scrollIntoView({ behavior: "smooth", block: "start" }));
   }
 }
@@ -761,7 +799,20 @@ function applyTheme(name) {
   );
 }
 
+function updateNotesBadge() {
+  const badge = $("#notes-badge");
+  if (!badge) return;
+  const n = Store.notesList().length;
+  badge.textContent = n;
+  badge.hidden = !n;
+}
+
 function initSettings() {
+  const nb = $("#notes-btn");
+  if (nb) nb.onclick = () => go("#/notes");
+  updateNotesBadge();
+  document.addEventListener("goat:notes", updateNotesBadge);
+
   const btn = $("#settings-btn");
   const pop = $("#settings-pop");
   if (!btn || !pop) return;
