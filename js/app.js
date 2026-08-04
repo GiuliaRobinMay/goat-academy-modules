@@ -244,6 +244,22 @@ function renderCourseList() {
   }).join("");
 
   $("#course-list").innerHTML = `
+    ${(() => {
+      const next = Store.nextUp();
+      const fresh = done === 0;
+      const complete = done === ALL_LESSONS.length;
+      const kicker = fresh ? "Start here" : complete ? "Course completed" : "Next up";
+      const cta = fresh ? "Start here" : complete ? "Watch again" : "Watch now";
+      return `
+      <div class="glass next-block" id="watch-next" title="${esc(next.title)}">
+        ${tileHtml(next)}
+        <div class="nb-meta">
+          <span class="nb-kicker">${kicker} · ${esc(next.partTag)}</span>
+          <span class="nb-title">${esc(next.title)}</span>
+        </div>
+        <span class="nb-cta">${I.play} ${cta}</span>
+      </div>`;
+    })()}
     <div class="glass list-head">
       <div class="mini-ring">
         <svg width="52" height="52" viewBox="0 0 52 52">
@@ -269,22 +285,6 @@ function renderCourseList() {
         </div>
       </div>
     </div>
-    ${(() => {
-      const next = Store.nextUp();
-      const fresh = done === 0;
-      const complete = done === ALL_LESSONS.length;
-      const kicker = fresh ? "Start here" : complete ? "Course completed" : "Next up";
-      const cta = fresh ? "Start here" : complete ? "Watch again" : "Watch now";
-      return `
-      <div class="glass next-block" id="watch-next" title="${esc(next.title)}">
-        ${tileHtml(next)}
-        <div class="nb-meta">
-          <span class="nb-kicker">${kicker} · ${esc(next.partTag)}</span>
-          <span class="nb-title">${esc(next.title)}</span>
-        </div>
-        <span class="nb-cta">${I.play} ${cta}</span>
-      </div>`;
-    })()}
     ${modulesHtml}`;
 
   $("#watch-next").onclick = () => {
@@ -445,9 +445,9 @@ function renderLessonPane(l) {
       <span class="sep"></span>
       <button data-cmd="removeFormat" title="Clear formatting">✕</button>
     </div>
-    <div class="note-entries" id="note-entries"></div>
+    <div class="note-editor single" id="note-editor" contenteditable="true"
+         data-placeholder="Write your notes for this lesson — key levels, rules, aha-moments…">${Store.noteHtml(l.id)}</div>
     <div class="foot">
-      <button class="btn btn-primary btn-sm" id="add-note">${I.pen} Add note</button>
       <button class="btn btn-ghost btn-sm" id="print-note">${I.print} Print these notes</button>
     </div>
   </section>`;
@@ -553,66 +553,23 @@ function renderLessonPane(l) {
     b.onclick = () => document.execCommand(b.dataset.cmd, false, b.dataset.val || null);
   });
 
-  renderNoteEntries(l);
-  $("#add-note").onclick = () => {
-    Store.addEntry(l.id);
-    renderNoteEntries(l);
-    const editors = $$("#note-entries .note-editor");
-    if (editors.length) editors[editors.length - 1].focus();
-  };
-  $("#print-note").onclick = () => printNotes([l.id]);
-}
-
-/* journal entries — each one carries its own timestamp */
-function renderNoteEntries(l) {
-  const wrap = $("#note-entries");
-  const entries = Store.entries(l.id);
-
-  wrap.innerHTML = entries.length
-    ? entries
-        .map(
-          (e) => `
-      <div class="note-entry-item" data-entry="${e.id}">
-        <div class="ne-head">
-          <span class="ne-stamp">${esc(fmtStamp(e.createdAt))}</span>
-          <button class="ne-del" title="Delete this note">${I.trash}</button>
-        </div>
-        <div class="note-editor" contenteditable="true" data-placeholder="Write your note…">${e.html}</div>
-      </div>`
-        )
-        .join("")
-    : `<div class="notes-empty">No notes yet — hit “Add note” to start your journal for this lesson.</div>`;
-
+  /* one large notes area per lesson, autosaving */
+  const editor = $("#note-editor");
   const saveState = $("#save-state");
-  $$("#note-entries .note-entry-item").forEach((item) => {
-    const entryId = item.dataset.entry;
-    const editor = $(".note-editor", item);
+  let noteTimer;
+  editor.oninput = () => {
+    saveState.textContent = "Saving…";
+    saveState.classList.remove("saved");
+    clearTimeout(noteTimer);
+    noteTimer = setTimeout(() => {
+      Store.setNote(l.id, editor.innerHTML, editor.innerText);
+      saveState.textContent = "Saved ✓";
+      saveState.classList.add("saved");
+      renderCourseList();
+    }, 600);
+  };
 
-    let t;
-    editor.oninput = () => {
-      saveState.textContent = "Saving…";
-      saveState.classList.remove("saved");
-      clearTimeout(t);
-      t = setTimeout(() => {
-        Store.saveEntry(l.id, entryId, editor.innerHTML, editor.innerText);
-        saveState.textContent = "Saved ✓";
-        saveState.classList.add("saved");
-        renderCourseList();
-      }, 600);
-    };
-
-    $(".ne-del", item).onclick = () => {
-      const entry = Store.entries(l.id).find((e) => e.id === entryId);
-      const stamp = entry ? fmtStamp(entry.createdAt) : "";
-      if (
-        confirm(`⚠️ Delete this note (${stamp})?\n\nThis permanently deletes the note. It cannot be undone.`)
-      ) {
-        Store.deleteEntry(l.id, entryId);
-        renderNoteEntries(l);
-        renderCourseList();
-      }
-    };
-  });
+  $("#print-note").onclick = () => printNotes([l.id]);
 }
 
 /* ---------- resizable split: drag left = bigger player,
@@ -698,49 +655,67 @@ function renderCourse(route) {
    ============================================================= */
 
 function renderNotes() {
-  const notes = Store.notesList();
-  const totalEntries = notes.reduce((n, x) => n + x.entries.length, 0);
+  const withNotes = Store.notesList();
   $("#page").innerHTML = `
     <div class="notes-page-head">
       <div>
         <h2>My notes</h2>
-        <div class="sub">${notes.length ? `${totalEntries} note${totalEntries === 1 ? "" : "s"} across ${notes.length} lesson${notes.length === 1 ? "" : "s"} — keep them, print them, own them.` : "Everything you write while watching lives here."}</div>
+        <div class="sub">Your notes, ordered by module and lesson.</div>
       </div>
       <div class="actions">
-        ${notes.length ? `<button class="btn btn-primary" id="print-all">${I.print} Print all notes</button>` : ""}
+        ${withNotes.length ? `<button class="btn btn-primary" id="print-all">${I.print} Print all notes</button>` : ""}
         <button class="btn btn-ghost" data-nav="#/course">${I.course} Back to the course</button>
       </div>
     </div>
-    <div class="notes-list">
-      ${
-        notes.length
-          ? notes
-              .map(({ lesson, entries }) => {
-                const latest = entries[entries.length - 1];
-                return `
-        <section class="glass note-entry">
-          <div class="top">
-            <span class="where">➽ ${esc(lesson.sectionTag)} · ➧ ${esc(lesson.partTag)}</span>
-            <span class="when">${entries.length} note${entries.length === 1 ? "" : "s"} · last ${fmtStamp(latest.updatedAt)}</span>
-          </div>
-          <h4>${esc(lesson.title)}</h4>
-          <div class="excerpt">${esc(latest.text).slice(0, 400)}</div>
-          <div class="actions">
-            <button class="btn btn-ghost btn-sm" data-goto="${lesson.id}">${I.pen} Open lesson & edit</button>
-            <button class="btn btn-ghost btn-sm" data-print="${lesson.id}">${I.print} Print</button>
-          </div>
-        </section>`;
-              })
-              .join("")
-          : `<div class="glass empty"><div class="big">📝</div>No notes yet.<br>Open a lesson and start writing — everything autosaves.</div>`
-      }
-    </div>`;
+    ${COURSE_SECTIONS.map(
+      (s, si) => `
+    <div class="notes-module">
+      <div class="nm-head">
+        <span class="mh-num">Module ${si + 1}</span>
+        <span class="nm-title">${esc(s.tag)} · ${esc(s.title)}</span>
+      </div>
+      ${s.parts
+        .flatMap((p) => p.lessons)
+        .map((l) => {
+          const has = Store.hasNotes(l.id);
+          const entry = Store.entries(l.id)[0];
+          return `
+      <div class="glass note-row ${has ? "has" : ""}" data-goto="${l.id}">
+        <span class="nr-mark">${has ? I.check : I.notes}</span>
+        <div class="nr-main">
+          <div class="nr-lesson">Lesson ${l.index + 1} · ${esc(l.title)}</div>
+          ${
+            has
+              ? `<div class="nr-note rich">${Store.noteHtml(l.id)}</div>
+                 <div class="nr-when">Updated ${esc(fmtStamp(entry.updatedAt))}</div>`
+              : `<div class="nr-none">No notes yet</div>`
+          }
+        </div>
+        <div class="nr-actions">
+          <button class="btn btn-ghost btn-sm" data-goto="${l.id}">${I.pen} ${has ? "Edit" : "Add notes"}</button>
+          ${has ? `<button class="btn btn-ghost btn-sm" data-print="${l.id}" title="Print">${I.print}</button>` : ""}
+        </div>
+      </div>`;
+        })
+        .join("")}
+    </div>`
+    ).join("")}`;
 
   $$("#page [data-nav]").forEach((b) => (b.onclick = () => go(b.dataset.nav)));
-  $$("#page [data-goto]").forEach((b) => (b.onclick = () => openLesson(b.dataset.goto)));
-  $$("#page [data-print]").forEach((b) => (b.onclick = () => printNotes([b.dataset.print])));
+  $$("#page [data-goto]").forEach((b) => {
+    b.onclick = (e) => {
+      e.stopPropagation();
+      openLesson(b.dataset.goto);
+    };
+  });
+  $$("#page [data-print]").forEach((b) => {
+    b.onclick = (e) => {
+      e.stopPropagation();
+      printNotes([b.dataset.print]);
+    };
+  });
   const pa = $("#print-all");
-  if (pa) pa.onclick = () => printNotes(notes.map((n) => n.lesson.id));
+  if (pa) pa.onclick = () => printNotes(withNotes.map((n) => n.lesson.id));
 }
 
 /* =============================================================
@@ -816,19 +791,9 @@ function applyTheme(name) {
   );
 }
 
-function updateNotesBadge() {
-  const badge = $("#notes-badge");
-  if (!badge) return;
-  const n = Store.notesList().length;
-  badge.textContent = n;
-  badge.hidden = !n;
-}
-
 function initSettings() {
   const nb = $("#notes-btn");
   if (nb) nb.onclick = () => go("#/notes");
-  updateNotesBadge();
-  document.addEventListener("goat:notes", updateNotesBadge);
 
   const btn = $("#settings-btn");
   const pop = $("#settings-pop");

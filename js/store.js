@@ -168,6 +168,25 @@ const Store = {
   hasNotes(lessonId) {
     return this.entries(lessonId).some((e) => e.text && e.text.trim());
   },
+  /* single-note view of a lesson's journal: older multi-entry notes
+     are shown merged and collapse into one entry on the next save */
+  noteHtml(lessonId) {
+    return this.entries(lessonId).map((e) => e.html).join("");
+  },
+  setNote(lessonId, html, text) {
+    const empty = !text || !text.trim();
+    if (empty) {
+      delete this.state.notes[lessonId];
+    } else {
+      const prev = this.entries(lessonId);
+      const createdAt = prev.length ? prev[0].createdAt : new Date().toISOString();
+      this.state.notes[lessonId] = {
+        entries: [{ id: prev.length ? prev[0].id : "n" + Date.now(), html, text, createdAt, updatedAt: new Date().toISOString() }],
+      };
+    }
+    this._persist();
+    document.dispatchEvent(new CustomEvent("goat:notes"));
+  },
   /* lessons that have at least one non-empty entry */
   notesList() {
     return ALL_LESSONS.map((l) => {
