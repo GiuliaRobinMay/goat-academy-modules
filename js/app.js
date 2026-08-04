@@ -213,11 +213,13 @@ function renderCourseList() {
     return `
     <div class="module-block ${closed ? "closed" : ""}">
       <div class="module-head" data-module="${s.id}" role="button" title="${closed ? "Expand" : "Collapse"} this module">
-        <span class="mh-num">Module ${si + 1}</span>
-        <span class="mh-title">${esc(s.tag)} · ${esc(s.title)}</span>
-        <span class="mh-bar"><i style="width:${sPct}%"></i></span>
-        <span class="mh-progress">${sDone}/${lessons.length}</span>
-        <span class="mh-toggle">${I.chev}</span>
+        <div class="mh-row">
+          <span class="mh-num">Module ${si + 1}</span>
+          <span class="mh-bar"><i style="width:${sPct}%"></i></span>
+          <span class="mh-progress">${sDone}/${lessons.length}</span>
+          <span class="mh-toggle">${I.chev}</span>
+        </div>
+        <div class="mh-title">${esc(s.tag)} · ${esc(s.title)}</div>
       </div>
       <div class="module-body" ${closed ? "hidden" : ""}>
       ${s.parts
@@ -261,13 +263,28 @@ function renderCourseList() {
         <div class="sub">completed</div>
       </div>
       <div class="lh-actions">
-        <button class="btn btn-primary btn-sm" id="watch-next">${I.play} Watch next lesson</button>
         <div class="view-toggle">
           <button class="${UI.view === "grid" ? "active" : ""}" data-view="grid" title="Grid view">${I.grid}</button>
           <button class="${UI.view === "list" ? "active" : ""}" data-view="list" title="List view">${I.list}</button>
         </div>
       </div>
     </div>
+    ${(() => {
+      const next = Store.nextUp();
+      const fresh = done === 0;
+      const complete = done === ALL_LESSONS.length;
+      const kicker = fresh ? "Start here" : complete ? "Course completed" : "Next up";
+      const cta = fresh ? "Start here" : complete ? "Watch again" : "Watch now";
+      return `
+      <div class="glass next-block" id="watch-next" title="${esc(next.title)}">
+        ${tileHtml(next)}
+        <div class="nb-meta">
+          <span class="nb-kicker">${kicker} · ${esc(next.partTag)}</span>
+          <span class="nb-title">${esc(next.title)}</span>
+        </div>
+        <span class="nb-cta">${I.play} ${cta}</span>
+      </div>`;
+    })()}
     ${modulesHtml}`;
 
   $("#watch-next").onclick = () => {
