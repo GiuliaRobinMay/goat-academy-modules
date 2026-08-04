@@ -688,6 +688,11 @@ img { max-width: 100%; display: block; }
   font-size: 11.5px; font-weight: 700;
 }
 .watched-tag svg { width: 12px; height: 12px; }
+.watched-tag.watching {
+  background: var(--amber-soft);
+  border-color: rgba(245, 185, 66, 0.4);
+  color: var(--amber);
+}
 
 /* extra video items (multi-video lessons) */
 .extra-media { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }

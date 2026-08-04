@@ -68,8 +68,11 @@ The UI never touches persistence directly — everything goes through
    download the folder, upload to the final video host (Bunny / Vimeo /
    Mux recommended — they provide domain locking and end-of-video
    events), and swap the manifest entries for the new embed URLs.
-   Wire the host's "video ended" event to `Store.setStatus(lessonId,
-   "done")` — that replaces the interim play-click completion trigger.
+   Completion is wired to the Wistia player's `ended` event (with a
+   ≥97% timeupdate safety net) in `js/app.js`: starting a video marks
+   the lesson "watching"; only finishing it marks "done" and unlocks
+   the next lesson. Non-Wistia lessons keep an explicit
+   "Mark lesson as done" button.
    The player containers also expose `data-mighty-post-id` /
    `data-mighty-video-id` if you prefer native Mighty tracked playback.
 5. **Notes** — the Headless API is read-oriented, so member notes need a

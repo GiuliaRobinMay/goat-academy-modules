@@ -415,6 +415,7 @@ function mediaHtml(l, block, main) {
 }
 
 const WATCHED_TAG = `<span class="watched-tag">${I.check} Watched — next lesson unlocked</span>`;
+const WATCHING_TAG = `<span class="watched-tag watching">${I.play} Watching — finish the video to unlock the next lesson</span>`;
 
 function renderLessonPane(l) {
   const pane = $("#player-pane");
@@ -453,8 +454,10 @@ function renderLessonPane(l) {
       <div id="watch-state">${
         Store.status(l.id) === "done"
           ? WATCHED_TAG
-          : videos.length
-            ? ""
+          : videos.length && videos[0].provider === "wistia"
+            ? Store.status(l.id) === "watching"
+              ? WATCHING_TAG
+              : ""
             : `<button class="btn btn-primary btn-sm" id="mark-done" style="margin-top:12px">${I.check} Mark lesson as done</button>`
       }</div>
       ${
@@ -523,9 +526,8 @@ function renderLessonPane(l) {
 
   const section = sectionById(l.sectionId);
 
-  /* watching the video is what completes the lesson and unlocks the
-     next one. Interim trigger: the play click. The tech team swaps this
-     for the Mighty tracked-video completion event via the Headless API. */
+  /* finishing the video is what completes the lesson and unlocks the
+     next one (Wistia "ended" event). Starting it only marks "watching". */
   const markWatched = () => {
     if (Store.status(l.id) !== "done") {
       Store.setStatus(l.id, "done");
@@ -534,40 +536,59 @@ function renderLessonPane(l) {
       $("#watch-state").innerHTML = WATCHED_TAG;
     }
   };
+  const markWatching = () => {
+    if (Store.status(l.id) === "towatch") {
+      Store.setStatus(l.id, "watching");
+      renderSectionList(section);
+      if (Store.status(l.id) !== "done") $("#watch-state").innerHTML = WATCHING_TAG;
+    }
+  };
 
   /* mighty play → open the lesson post (native playback comes with the
      Headless API hookup) */
   $$("#player-pane [data-open]").forEach((ov) => {
     ov.onclick = () => {
-      markWatched();
+      markWatching();
       window.open(ov.dataset.open, "_blank", "noopener");
     };
   });
 
-  /* wistia embeds swap the poster for the player and play in place */
+  /* wistia embeds swap the poster for the player and play in place;
+     the lesson completes only when the video actually finishes */
   $$("#player-pane [data-wistia]").forEach((ov) => {
     ov.onclick = () => {
-      markWatched();
+      markWatching();
       const wrap = ov.closest(".player-media");
       const id = wrap.dataset.wistiaId;
       loadWistiaMedia(id);
       wrap.innerHTML = `<wistia-player media-id="${esc(id)}" aspect="1.7777777777777777" autoplay></wistia-player>`;
+      const player = wrap.querySelector("wistia-player");
+      player.addEventListener("ended", markWatched);
+      /* safety net: some browsers/players report the end via timeupdate */
+      player.addEventListener("timeupdate", () => {
+        const d = player.duration;
+        if (d && player.currentTime / d >= 0.97) markWatched();
+      });
     };
   });
 
-  /* fathom embeds load & play in place */
+  /* fathom embeds load & play in place (no end event available) */
   $$("#player-pane [data-fathom]").forEach((ov) => {
     ov.onclick = () => {
-      markWatched();
+      markWatching();
       const wrap = ov.closest(".player-media");
       wrap.innerHTML = `<iframe src="${esc(wrap.dataset.embed)}" allow="encrypted-media; fullscreen" allowfullscreen></iframe>`;
     };
   });
 
-  /* lessons without a video complete via the button or by opening a tool */
+  /* lessons without a finish-detecting video complete via the button
+     or by opening a tool; on Wistia lessons the video itself is the
+     only completion path */
   const md = $("#mark-done");
   if (md) md.onclick = markWatched;
-  $$("#player-pane .tool-item").forEach((t) => t.addEventListener("click", markWatched));
+  if (!(videos.length && videos[0].provider === "wistia")) {
+    $$("#player-pane .tool-item").forEach((t) => t.addEventListener("click", markWatched));
+  }
 
   /* formatting toolbar acts on the focused entry */
   $$("#note-toolbar [data-cmd]").forEach((b) => {
