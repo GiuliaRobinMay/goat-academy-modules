@@ -220,7 +220,7 @@ function renderHome() {
             <svg width="96" height="96" viewBox="0 0 96 96">
               <defs>
                 <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#16a34a"/><stop offset="100%" stop-color="#34e28a"/>
+                  <stop offset="0%" style="stop-color:var(--accent-deep)"/><stop offset="100%" style="stop-color:var(--accent)"/>
                 </linearGradient>
               </defs>
               <circle class="track" cx="48" cy="48" r="${R}" fill="none" stroke-width="9"/>
@@ -279,7 +279,7 @@ function lessonCardHtml(l) {
   /* cards are pure thumbnails — the artwork carries the title
      (full title on hover via tooltip) */
   return `
-  <div class="lesson-card ${UI.activeLessonId === l.id ? "active" : ""} ${locked ? "locked" : ""}"
+  <div class="lesson-card ${UI.activeLessonId === l.id ? "active" : ""} ${locked ? "locked" : ""} ${st === "done" && !locked ? "done" : ""}"
        data-lesson="${l.id}" title="${locked ? LOCK_HINT : esc(l.title)}">
     <div class="thumb-wrap">
       ${tileHtml(l)}

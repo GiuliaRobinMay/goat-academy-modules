@@ -28,7 +28,8 @@
   --blue: #57c7ff;
   --blue-soft: rgba(87, 199, 255, 0.14);
   --lemon: #e6fb55;
-  --lemon-soft: rgba(230, 251, 85, 0.13);
+  --lemon-rgb: 230, 251, 85;
+  --lemon-soft: rgba(var(--lemon-rgb), 0.13);
   --hairline: rgba(255, 255, 255, 0.08);
   --hairline-strong: rgba(255, 255, 255, 0.13);
   --danger: #ff6b6b;
@@ -144,7 +145,7 @@ img { max-width: 100%; display: block; }
 .main {
   margin: 0 auto;
   padding: 26px clamp(16px, 3vw, 40px) 60px;
-  max-width: 1560px;
+  max-width: 1880px;
 }
 
 /* =============================================================
@@ -180,7 +181,7 @@ img { max-width: 100%; display: block; }
   border-color: var(--hairline-strong);
   color: var(--text-1);
 }
-.btn-ghost:hover { border-color: rgba(122, 255, 184, 0.45); background: rgba(255, 255, 255, 0.07); }
+.btn-ghost:hover { border-color: var(--glass-border-hi); background: rgba(255, 255, 255, 0.07); }
 .btn-sm { padding: 6px 12px; font-size: 12px; }
 .btn[disabled] { opacity: 0.4; pointer-events: none; }
 
@@ -386,12 +387,12 @@ img { max-width: 100%; display: block; }
 
 /* the section currently in progress — lit up fresh lemon */
 .section-card.active-section {
-  border-color: rgba(230, 251, 85, 0.5);
-  background: linear-gradient(135deg, rgba(230, 251, 85, 0.09), var(--glass) 55%);
-  box-shadow: 0 0 26px rgba(230, 251, 85, 0.14), inset 0 0 0 1px rgba(230, 251, 85, 0.22);
+  border-color: rgba(var(--lemon-rgb), 0.5);
+  background: linear-gradient(135deg, rgba(var(--lemon-rgb), 0.09), var(--glass) 55%);
+  box-shadow: 0 0 26px rgba(var(--lemon-rgb), 0.14), inset 0 0 0 1px rgba(var(--lemon-rgb), 0.22);
 }
 .section-card.active-section .tag { color: var(--lemon); }
-.section-card.active-section .meter i { background: linear-gradient(90deg, #b8d92e, var(--lemon)); }
+.section-card.active-section .meter i { background: linear-gradient(90deg, rgba(var(--lemon-rgb), 0.7), var(--lemon)); }
 .section-card.active-section .count { color: var(--text-1); }
 
 /* completed sections — clear check mark */
@@ -552,7 +553,10 @@ img { max-width: 100%; display: block; }
     0 0 60px rgba(var(--accent-rgb), 0.18),
     0 8px 30px rgba(0, 0, 0, 0.35);
 }
-/* the lesson currently being done — bold green ring */
+/* viewed (completed) lessons — fine amber hairline */
+.lesson-card.done { border-color: var(--amber); }
+
+/* the lesson currently being viewed — the only thick ring */
 .lesson-card.active {
   border-color: var(--accent);
   box-shadow: 0 0 0 2.5px var(--accent), 0 0 26px rgba(var(--accent-rgb), 0.28);
@@ -575,7 +579,7 @@ img { max-width: 100%; display: block; }
 /* locked lessons (dripped course) — gently dimmed, not grayed out */
 .lesson-card.locked, .lesson-row.locked { cursor: not-allowed; }
 .lesson-card.locked .thumb-wrap .tile,
-.lesson-row.locked .tile { filter: grayscale(0.45) brightness(0.72); }
+.lesson-row.locked .tile { filter: grayscale(0.7) brightness(0.62); }
 .lesson-card.locked .body .name,
 .lesson-row.locked .name { color: var(--text-2); }
 
@@ -1110,7 +1114,8 @@ img { max-width: 100%; display: block; }
   --btn-g2: #f2582a;
   --btn-ink: #2b1005;
   --lemon: #ffd23f;
-  --lemon-soft: rgba(255, 210, 63, 0.13);
+  --lemon-rgb: 255, 210, 63;
+  --lemon-soft: rgba(var(--lemon-rgb), 0.13);
   --tile-hue: 18;
 }
 :root[data-theme="molten"] .appbar-cover {
@@ -1146,7 +1151,8 @@ img { max-width: 100%; display: block; }
   --amber: #c07f12;
   --amber-soft: rgba(192, 127, 18, 0.13);
   --lemon: #9aa50a;
-  --lemon-soft: rgba(154, 165, 10, 0.12);
+  --lemon-rgb: 154, 165, 10;
+  --lemon-soft: rgba(var(--lemon-rgb), 0.12);
   --danger: #d64040;
   --tile-hue: 150;
 }
