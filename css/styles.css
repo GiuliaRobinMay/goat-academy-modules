@@ -573,6 +573,24 @@ img { max-width: 100%; display: block; }
   user-select: none;
 }
 .module-block.closed .module-head { margin-bottom: 0; }
+
+/* collapsed modules become glass cards, same family as the
+   progress widget and the next-up block */
+.module-block.closed { margin-bottom: 14px; }
+.module-block.closed .module-head {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.module-block.closed .module-head:hover {
+  border-color: rgba(var(--accent-rgb), 0.5);
+  box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.16);
+}
+.module-block.closed .mh-row { margin-bottom: 6px; }
 .module-head .mh-row {
   display: flex;
   align-items: center;
