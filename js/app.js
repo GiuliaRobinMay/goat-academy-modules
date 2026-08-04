@@ -312,15 +312,38 @@ function bindLessonCard(el) {
   el.onclick = () => openLesson(el.dataset.lesson);
 }
 
+/* first sensible lesson to open inside a module */
+function sectionEntryLesson(section) {
+  const lessons = section.parts.flatMap((p) => p.lessons);
+  return lessons.find((l) => !isLocked(l) && Store.status(l.id) !== "done") || lessons.find((l) => !isLocked(l)) || null;
+}
+
 function renderCourseList() {
-  const done = ALL_LESSONS.filter((l) => Store.status(l.id) === "done").length;
+  /* the list shows only the module the current lesson belongs to */
+  const active = lessonById(UI.activeLessonId);
+  const section = (active && sectionById(active.sectionId)) || COURSE_SECTIONS[0];
+  const lessons = section.parts.flatMap((p) => p.lessons);
+  const done = lessons.filter((l) => Store.status(l.id) === "done").length;
+
+  const idx = COURSE_SECTIONS.indexOf(section);
+  const prevS = COURSE_SECTIONS[idx - 1];
+  const nextS = COURSE_SECTIONS[idx + 1];
+  const nextSLocked = nextS && sectionLocked(nextS);
 
   $("#course-list").innerHTML = `
+    <div class="module-label">
+      <span class="section-kicker">➽ ${esc(section.tag)}</span>
+      <span class="ml-title">${esc(section.title)}</span>
+    </div>
     <div class="filter-bar">
       <button class="btn btn-ghost btn-sm" data-nav="#/home">${I.arrowL} Dashboard</button>
-      <span class="stat-pill"><b>${ALL_LESSONS.length}</b> Total lessons</span>
+      <span class="stat-pill"><b>${lessons.length}</b> Lessons</span>
       <span class="stat-pill done"><b>${done}</b> Completed</span>
-      <span class="stat-pill open"><b>${ALL_LESSONS.length - done}</b> Open</span>
+      <span class="stat-pill open"><b>${lessons.length - done}</b> Open</span>
+      <div class="mod-switch">
+        <button class="btn btn-ghost btn-sm" data-mod="${prevS ? prevS.id : ""}" ${prevS ? "" : "disabled"} title="${prevS ? esc(prevS.title) : ""}">${I.arrowL}</button>
+        <button class="btn btn-ghost btn-sm" data-mod="${nextS && !nextSLocked ? nextS.id : ""}" ${nextS && !nextSLocked ? "" : "disabled"} title="${nextS ? (nextSLocked ? LOCK_HINT : esc(nextS.title)) : ""}">${nextS && nextSLocked ? I.lock : I.arrowR}</button>
+      </div>
       <div class="view-toggle">
         <button class="${UI.view === "grid" ? "active" : ""}" data-view="grid" title="Grid view">${I.grid}</button>
         <button class="${UI.view === "list" ? "active" : ""}" data-view="list" title="List view">${I.list}</button>
@@ -328,11 +351,19 @@ function renderCourseList() {
     </div>
     ${
       UI.view === "grid"
-        ? `<div class="lesson-grid">${ALL_LESSONS.map(lessonCardHtml).join("")}</div>`
-        : `<div class="lesson-list">${ALL_LESSONS.map(lessonRowHtml).join("")}</div>`
+        ? `<div class="lesson-grid">${lessons.map(lessonCardHtml).join("")}</div>`
+        : `<div class="lesson-list">${lessons.map(lessonRowHtml).join("")}</div>`
     }`;
 
   $$("#course-list [data-nav]").forEach((b) => (b.onclick = () => go(b.dataset.nav)));
+  $$("#course-list [data-mod]").forEach((b) => {
+    if (!b.dataset.mod) return;
+    b.onclick = () => {
+      const s = sectionById(b.dataset.mod);
+      const target = s && sectionEntryLesson(s);
+      if (target) openLesson(target.id);
+    };
+  });
   $$("#course-list [data-view]").forEach((b) => (b.onclick = () => { UI.view = b.dataset.view; renderCourseList(); }));
   $$("#course-list [data-lesson]").forEach(bindLessonCard);
 }
