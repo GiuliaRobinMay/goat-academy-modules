@@ -840,6 +840,17 @@ const GDRIVE_THUMBS = {
   "market-crashes": "1dzv_03yEJuxvN99OQp7Y04xK3OKjUC5M",
   "busy-fools": "1ZI-Z8tDlmbqECAgqUj-rK9bftJPh_m_b",
   "ibkr-registration": "1CqRPZjCjXvozk7bdp7Omntz8RtBn0Bwy",
+  "thinkorswim-help": "1OLbExxAeSYQ7NGJXMMjNO7GOnuNXS2ts",
+  "tradevision-setup": "1b3gS8-GnUeLBxnbB4FtJGZs9PmLBpCV_",
+  "pattern-overview": "1p7PK5HAgfUTfBzglEGnAx2nEaM2pqcuh",
+  "base-pattern": "1Iym_ri5gy-xg6RdkivVNoMoz0C31ozaE",
+  "climbing-pattern": "11zmfaNoim2wOkF38tnXoNp5_TgvZY6qg",
+  "tired-pattern": "1B2lyK9yjB8aYZ4iqNRpKjtNqxEO5beGL",
+  "downhill-pattern": "1nGoXZtece77DZMHNHADOi-Gq1al5lxwf",
+  "sector-breakouts": "1x9Xh9y5KzxkcTYRy9bBtrv5dZ_0Rzzuj",
+  "when-to-buy-investors": "1kVhJaStksyAqHcfrZSbq-56g4L81Fw2N",
+  "buy-stop-limit": "1w72nNX5OiuErqA6rgmVbyStpUUAWnDVi",
+  "buying-at-close": "1XNzaIFxfEODc5pRvA9yJuo2YJvZoFT0g",
 };
 
 /* ---------- derived helpers ---------- */

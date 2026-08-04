@@ -62,7 +62,8 @@ function tileHtml(l, cls) {
   if (l.customThumb) {
     return `<div class="tile ${cls || ""}"><img class="tile-img" src="${esc(thumbUrl(l, 640))}" alt="" loading="lazy"></div>`;
   }
-  const h = 148 + ((l.index * 7) % 22);
+  const base = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--tile-hue")) || 148;
+  const h = base + ((l.index * 7) % 22);
   const path = TILE_PATHS[l.index % TILE_PATHS.length];
   return `<div class="tile ${cls || ""}" style="background:linear-gradient(150deg,hsl(${h},42%,16%),hsl(${h + 14},55%,7%))">
     <svg class="tile-chart" viewBox="0 0 100 56" preserveAspectRatio="none" aria-hidden="true">
@@ -118,15 +119,13 @@ function sectionById(id) {
 function currentRoute() {
   const h = location.hash.replace(/^#\/?/, "");
   const parts = h.split("/").map((p) => decodeURIComponent(p));
-  if (parts[0] === "section" && sectionById(parts[1])) {
-    return { page: "section", sectionId: parts[1], lessonId: parts[2] || null };
-  }
   if (parts[0] === "notes") return { page: "notes" };
   if (parts[0] === "course") {
-    /* legacy links from the first draft */
-    const l = parts[1] && lessonById(parts[1]);
-    const target = l || Store.nextUp();
-    return { page: "section", sectionId: target.sectionId, lessonId: l ? l.id : null };
+    return { page: "course", lessonId: parts[1] && lessonById(parts[1]) ? parts[1] : null };
+  }
+  if (parts[0] === "section") {
+    /* legacy links from the sectioned layout */
+    return { page: "course", lessonId: parts[2] && lessonById(parts[2]) ? parts[2] : null };
   }
   return { page: "home" };
 }
@@ -137,9 +136,8 @@ function go(hash) {
 }
 
 function openLesson(id) {
-  const l = lessonById(id);
-  if (!l) return;
-  go("#/section/" + l.sectionId + "/" + encodeURIComponent(id));
+  if (!lessonById(id)) return;
+  go("#/course/" + encodeURIComponent(id));
 }
 
 /* =============================================================
@@ -259,13 +257,19 @@ function renderHome() {
   $("#nextup").onclick = () => openLesson(next.id);
   $$("#page [data-nav]").forEach((b) => (b.onclick = () => go(b.dataset.nav)));
   $$("#page .section-card").forEach((el) => {
-    el.onclick = () => go("#/section/" + el.dataset.sec);
+    el.onclick = () => {
+      const s = sectionById(el.dataset.sec);
+      const lessons = s ? s.parts.flatMap((p) => p.lessons) : [];
+      const target = lessons.find((l) => !isLocked(l) && Store.status(l.id) !== "done") || lessons.find((l) => !isLocked(l));
+      if (target) openLesson(target.id);
+      else go("#/course");
+    };
   });
   $$("#page .hscroll .lesson-card").forEach(bindLessonCard);
 }
 
 /* =============================================================
-   Section view (one section at a time — dripped course)
+   Course view — all lessons in one continuous series
    ============================================================= */
 
 function lessonCardHtml(l) {
@@ -308,41 +312,28 @@ function bindLessonCard(el) {
   el.onclick = () => openLesson(el.dataset.lesson);
 }
 
-function renderSectionList(section) {
-  const lessons = section.parts.flatMap((p) => p.lessons);
-  const done = lessons.filter((l) => Store.status(l.id) === "done").length;
-
-  const partsHtml = section.parts
-    .map(
-      (p) => `
-      <div class="course-part">
-        <div class="part-head">
-          <span class="ptag">➧ ${esc(p.tag)}</span>
-          <span class="ptitle">${esc(p.title)}</span>
-          ${p.note ? `<span class="pnote">${esc(p.note)}</span>` : ""}
-        </div>
-        ${
-          UI.view === "grid"
-            ? `<div class="lesson-grid">${p.lessons.map(lessonCardHtml).join("")}</div>`
-            : `<div class="lesson-list">${p.lessons.map(lessonRowHtml).join("")}</div>`
-        }
-      </div>`
-    )
-    .join("");
+function renderCourseList() {
+  const done = ALL_LESSONS.filter((l) => Store.status(l.id) === "done").length;
 
   $("#course-list").innerHTML = `
     <div class="filter-bar">
-      <span class="stat-pill"><b>${lessons.length}</b> Total lessons</span>
+      <button class="btn btn-ghost btn-sm" data-nav="#/home">${I.arrowL} Dashboard</button>
+      <span class="stat-pill"><b>${ALL_LESSONS.length}</b> Total lessons</span>
       <span class="stat-pill done"><b>${done}</b> Completed</span>
-      <span class="stat-pill open"><b>${lessons.length - done}</b> Open</span>
+      <span class="stat-pill open"><b>${ALL_LESSONS.length - done}</b> Open</span>
       <div class="view-toggle">
         <button class="${UI.view === "grid" ? "active" : ""}" data-view="grid" title="Grid view">${I.grid}</button>
         <button class="${UI.view === "list" ? "active" : ""}" data-view="list" title="List view">${I.list}</button>
       </div>
     </div>
-    <div class="list-scroller">${partsHtml}</div>`;
+    ${
+      UI.view === "grid"
+        ? `<div class="lesson-grid">${ALL_LESSONS.map(lessonCardHtml).join("")}</div>`
+        : `<div class="lesson-list">${ALL_LESSONS.map(lessonRowHtml).join("")}</div>`
+    }`;
 
-  $$("#course-list [data-view]").forEach((b) => (b.onclick = () => { UI.view = b.dataset.view; renderSectionList(section); }));
+  $$("#course-list [data-nav]").forEach((b) => (b.onclick = () => go(b.dataset.nav)));
+  $$("#course-list [data-view]").forEach((b) => (b.onclick = () => { UI.view = b.dataset.view; renderCourseList(); }));
   $$("#course-list [data-lesson]").forEach(bindLessonCard);
 }
 
@@ -524,22 +515,19 @@ function renderLessonPane(l) {
     ? playerCard + notesCard + textCard + toolsCard
     : playerCard + textCard + toolsCard + notesCard;
 
-  const section = sectionById(l.sectionId);
-
   /* finishing the video is what completes the lesson and unlocks the
      next one (Wistia "ended" event). Starting it only marks "watching". */
   const markWatched = () => {
     if (Store.status(l.id) !== "done") {
       Store.setStatus(l.id, "done");
-      renderSectionList(section);
-      renderSectionHead(section);
+      renderCourseList();
       $("#watch-state").innerHTML = WATCHED_TAG;
     }
   };
   const markWatching = () => {
     if (Store.status(l.id) === "towatch") {
       Store.setStatus(l.id, "watching");
-      renderSectionList(section);
+      renderCourseList();
       if (Store.status(l.id) !== "done") $("#watch-state").innerHTML = WATCHING_TAG;
     }
   };
@@ -640,7 +628,7 @@ function renderNoteEntries(l) {
         Store.saveEntry(l.id, entryId, editor.innerHTML, editor.innerText);
         saveState.textContent = "Saved ✓";
         saveState.classList.add("saved");
-        renderSectionList(sectionById(l.sectionId));
+        renderCourseList();
       }, 600);
     };
 
@@ -652,68 +640,78 @@ function renderNoteEntries(l) {
       ) {
         Store.deleteEntry(l.id, entryId);
         renderNoteEntries(l);
-        renderSectionList(sectionById(l.sectionId));
+        renderCourseList();
       }
     };
   });
 }
 
-function renderSectionHead(section) {
-  const lessons = section.parts.flatMap((p) => p.lessons);
-  const idx = COURSE_SECTIONS.indexOf(section);
-  const prevS = COURSE_SECTIONS[idx - 1];
-  const nextS = COURSE_SECTIONS[idx + 1];
-  const nextSLocked = nextS && sectionLocked(nextS);
-  const done = lessons.filter((l) => Store.status(l.id) === "done").length;
+/* ---------- resizable split: drag left = bigger player,
+   drag right = wider list (more thumbnails per row) ---------- */
 
-  $("#section-head").innerHTML = `
-    <button class="btn btn-ghost btn-sm" data-nav="#/home">${I.arrowL} Course map</button>
-    <div class="sh-title">
-      <span class="section-kicker">➽ ${esc(section.tag)}</span>
-      <h2>${esc(section.title)}</h2>
-    </div>
-    <span class="sh-progress">${done}/${lessons.length} completed</span>
-    <div class="section-switch">
-      <button class="btn btn-ghost btn-sm" ${prevS ? `data-nav="#/section/${prevS.id}"` : "disabled"}>${I.arrowL} ${prevS ? esc(prevS.tag) : "—"}</button>
-      <button class="btn btn-ghost btn-sm" ${nextS && !nextSLocked ? `data-nav="#/section/${nextS.id}"` : "disabled"} ${nextSLocked ? `title="${LOCK_HINT}"` : ""}>
-        ${nextS ? (nextSLocked ? I.lock + " " : "") + esc(nextS.tag) : "—"} ${nextS && !nextSLocked ? I.arrowR : ""}
-      </button>
-    </div>`;
+const SPLIT_KEY = "goat-academy-modules:split";
 
-  $$("#section-head [data-nav]").forEach((b) => (b.onclick = () => go(b.dataset.nav)));
+function initSplit() {
+  const layout = $("#course-layout");
+  const handle = $("#split-handle");
+  if (!layout || !handle) return;
+
+  let ratio = parseFloat(localStorage.getItem(SPLIT_KEY));
+  if (!(ratio >= 0.24 && ratio <= 0.62)) ratio = 0.34;
+  const apply = () => layout.style.setProperty("--split", (ratio * 100).toFixed(2) + "%");
+  apply();
+
+  let dragging = false;
+  handle.addEventListener("pointerdown", (e) => {
+    dragging = true;
+    handle.classList.add("dragging");
+    document.body.classList.add("resizing");
+    handle.setPointerCapture(e.pointerId);
+  });
+  handle.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    const rect = layout.getBoundingClientRect();
+    ratio = Math.min(0.62, Math.max(0.24, (e.clientX - rect.left) / rect.width));
+    apply();
+  });
+  const end = () => {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove("dragging");
+    document.body.classList.remove("resizing");
+    try { localStorage.setItem(SPLIT_KEY, String(ratio)); } catch (e) {}
+  };
+  handle.addEventListener("pointerup", end);
+  handle.addEventListener("pointercancel", end);
 }
 
-function renderSection(route) {
-  const section = sectionById(route.sectionId);
-  if (!section) { go("#/home"); return; }
-  const lessons = section.parts.flatMap((p) => p.lessons);
-
+function renderCourse(route) {
   /* pick the active lesson (never a locked one) */
   let lesson = route.lessonId ? lessonById(route.lessonId) : null;
-  if (lesson && (lesson.sectionId !== section.id || isLocked(lesson))) lesson = null;
+  if (lesson && isLocked(lesson)) lesson = null;
   if (!lesson) {
     const last = Store.state.lastLessonId && lessonById(Store.state.lastLessonId);
-    if (last && last.sectionId === section.id && !isLocked(last)) lesson = last;
+    if (last && !isLocked(last)) lesson = last;
   }
   if (!lesson) {
     lesson =
-      lessons.find((l) => !isLocked(l) && Store.status(l.id) !== "done") ||
-      [...lessons].reverse().find((l) => !isLocked(l)) ||
-      null;
+      ALL_LESSONS.find((l) => !isLocked(l) && Store.status(l.id) !== "done") ||
+      [...ALL_LESSONS].reverse().find((l) => !isLocked(l)) ||
+      ALL_LESSONS[0];
   }
   UI.activeLessonId = lesson ? lesson.id : null;
   if (lesson) Store.setLastLesson(lesson.id);
 
   $("#page").innerHTML = `
-    <div class="section-head-bar" id="section-head"></div>
     <div class="course-layout" id="course-layout">
       <div class="list-pane" id="course-list"></div>
+      <div class="split-handle" id="split-handle" title="Drag to resize"></div>
       <div class="player-col"><div class="player-pane" id="player-pane"></div></div>
     </div>`;
 
-  renderSectionHead(section);
-  renderSectionList(section);
+  renderCourseList();
   renderLessonPane(lesson);
+  initSplit();
 
   if (route.lessonId && window.matchMedia("(max-width: 1020px)").matches) {
     requestAnimationFrame(() => $("#player-pane").scrollIntoView({ behavior: "smooth", block: "start" }));
@@ -823,14 +821,56 @@ function printNotes(lessonIds) {
 function render() {
   const route = currentRoute();
   if (route.page === "home") renderHome();
-  else if (route.page === "section") renderSection(route);
+  else if (route.page === "course") renderCourse(route);
   else renderNotes();
   window.scrollTo({ top: 0 });
 }
 
 window.addEventListener("hashchange", render);
 
+/* =============================================================
+   Theme (settings popup in the app bar)
+   ============================================================= */
+
+const THEME_KEY = "goat-academy-modules:theme";
+
+function applyTheme(name) {
+  if (name === "green") delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = name;
+  $$("#settings-pop [data-theme-choice]").forEach((b) =>
+    b.classList.toggle("on", b.dataset.themeChoice === name)
+  );
+}
+
+function initSettings() {
+  const btn = $("#settings-btn");
+  const pop = $("#settings-pop");
+  if (!btn || !pop) return;
+
+  let theme = "green";
+  try { theme = localStorage.getItem(THEME_KEY) || "green"; } catch (e) {}
+  applyTheme(theme);
+
+  btn.onclick = (e) => {
+    e.stopPropagation();
+    pop.hidden = !pop.hidden;
+  };
+  document.addEventListener("click", (e) => {
+    if (!pop.hidden && !pop.contains(e.target)) pop.hidden = true;
+  });
+  $$("#settings-pop [data-theme-choice]").forEach((b) => {
+    b.onclick = () => {
+      const t = b.dataset.themeChoice;
+      applyTheme(t);
+      try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+      pop.hidden = true;
+      render(); /* re-render so the generated tiles pick up the theme hue */
+    };
+  });
+}
+
 (async function boot() {
   await Store.init();
+  initSettings();
   render();
 })();
