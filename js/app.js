@@ -6,6 +6,7 @@
    ============================================================= */
 
 const COLLAPSE_KEY = "goat-academy-modules:collapsed";
+const NOTES_COLLAPSE_KEY = "goat-academy-modules:notes-collapsed";
 
 const UI = {
   view: "grid",
@@ -13,6 +14,9 @@ const UI = {
   scrollToActive: false,
   collapsed: (() => {
     try { return new Set(JSON.parse(localStorage.getItem(COLLAPSE_KEY)) || []); } catch (e) { return new Set(); }
+  })(),
+  notesCollapsed: (() => {
+    try { return new Set(JSON.parse(localStorage.getItem(NOTES_COLLAPSE_KEY)) || []); } catch (e) { return new Set(); }
   })(),
 };
 
@@ -669,11 +673,13 @@ function renderNotes() {
     </div>
     ${COURSE_SECTIONS.map(
       (s, si) => `
-    <div class="notes-module">
-      <div class="nm-head">
+    <div class="notes-module ${UI.notesCollapsed.has(s.id) ? "closed" : ""}">
+      <div class="nm-head" data-nm="${s.id}" role="button" title="${UI.notesCollapsed.has(s.id) ? "Expand" : "Collapse"} this module">
         <span class="mh-num">Module ${si + 1}</span>
         <span class="nm-title">${esc(s.tag)} · ${esc(s.title)}</span>
+        <span class="mh-toggle">${I.chev}</span>
       </div>
+      <div class="nm-body" ${UI.notesCollapsed.has(s.id) ? "hidden" : ""}>
       ${s.parts
         .flatMap((p) => p.lessons)
         .map((l) => {
@@ -698,9 +704,19 @@ function renderNotes() {
       </div>`;
         })
         .join("")}
+      </div>
     </div>`
     ).join("")}`;
 
+  $$("#page .nm-head").forEach((h) => {
+    h.onclick = () => {
+      const id = h.dataset.nm;
+      if (UI.notesCollapsed.has(id)) UI.notesCollapsed.delete(id);
+      else UI.notesCollapsed.add(id);
+      try { localStorage.setItem(NOTES_COLLAPSE_KEY, JSON.stringify([...UI.notesCollapsed])); } catch (e) {}
+      renderNotes();
+    };
+  });
   $$("#page [data-nav]").forEach((b) => (b.onclick = () => go(b.dataset.nav)));
   $$("#page [data-goto]").forEach((b) => {
     b.onclick = (e) => {
