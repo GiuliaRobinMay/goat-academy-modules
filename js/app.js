@@ -672,11 +672,14 @@ function renderNotes() {
       </div>
     </div>
     ${COURSE_SECTIONS.map(
-      (s, si) => `
+      (s, si) => {
+      const nmCount = s.parts.flatMap((p) => p.lessons).filter((l) => Store.hasNotes(l.id)).length;
+      return `
     <div class="notes-module ${UI.notesCollapsed.has(s.id) ? "closed" : ""}">
       <div class="nm-head" data-nm="${s.id}" role="button" title="${UI.notesCollapsed.has(s.id) ? "Expand" : "Collapse"} this module">
         <span class="mh-num">Module ${si + 1}</span>
         <span class="nm-title">${esc(s.tag)} · ${esc(s.title)}</span>
+        <span class="nm-count ${nmCount ? "has" : ""}">${nmCount ? `${I.pen} ${nmCount} note${nmCount === 1 ? "" : "s"}` : "No notes"}</span>
         <span class="mh-toggle">${I.chev}</span>
       </div>
       <div class="nm-body" ${UI.notesCollapsed.has(s.id) ? "hidden" : ""}>
@@ -705,8 +708,8 @@ function renderNotes() {
         })
         .join("")}
       </div>
-    </div>`
-    ).join("")}`;
+    </div>`;
+    }).join("")}`;
 
   $$("#page .nm-head").forEach((h) => {
     h.onclick = () => {

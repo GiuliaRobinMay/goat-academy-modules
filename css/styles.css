@@ -1074,20 +1074,51 @@ img { max-width: 100%; display: block; }
   flex-wrap: wrap;
 }
 
-/* Notes overview — every lesson listed by module */
-.notes-module { margin-bottom: 28px; }
+/* Notes overview — glass module cards, every lesson listed inside */
+.notes-module {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  padding: 2px 16px 16px;
+  margin-bottom: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.notes-module.closed { padding-bottom: 2px; }
+.notes-module.closed:hover {
+  border-color: rgba(var(--accent-rgb), 0.5);
+  box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.16);
+}
 .notes-module .nm-head {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 12px 0;
   margin-bottom: 12px;
-  padding-bottom: 10px;
   border-bottom: 1px solid var(--hairline);
   cursor: pointer;
   user-select: none;
 }
-.notes-module .nm-head .mh-toggle {
+.notes-module.closed .nm-head { margin-bottom: 0; border-bottom: none; }
+.notes-module .nm-count {
   margin-left: auto;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 99px;
+  color: var(--text-3);
+  border: 1px solid var(--glass-border);
+  white-space: nowrap;
+  flex: none;
+}
+.notes-module .nm-count svg { width: 11px; height: 11px; }
+.notes-module .nm-count.has {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: rgba(var(--accent-rgb), 0.35);
+}
+.notes-module .nm-head .mh-toggle {
   width: 26px; height: 26px;
   border-radius: 8px;
   display: grid; place-items: center;
@@ -1097,7 +1128,6 @@ img { max-width: 100%; display: block; }
 }
 .notes-module .nm-head .mh-toggle svg { width: 15px; height: 15px; }
 .notes-module .nm-head:hover .mh-toggle { color: var(--accent); }
-.notes-module.closed .nm-head { margin-bottom: 0; border-bottom-color: transparent; }
 .notes-module.closed .mh-toggle { transform: rotate(-90deg); }
 .notes-module .nm-title { font-size: 14.5px; font-weight: 800; }
 
