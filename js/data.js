@@ -851,6 +851,18 @@ const GDRIVE_THUMBS = {
   "when-to-buy-investors": "1kVhJaStksyAqHcfrZSbq-56g4L81Fw2N",
   "buy-stop-limit": "1w72nNX5OiuErqA6rgmVbyStpUUAWnDVi",
   "buying-at-close": "1XNzaIFxfEODc5pRvA9yJuo2YJvZoFT0g",
+  "what-to-buy-entry": "17fCSPjtpdYgRy-wqyx3OWDA5gqM8MDEv",
+  "position-sizing": "1F-vuWzvq2mbDU8XRoSnJ75NcjexSVYA5",
+  "selling-profit-taking": "1qxg7IQjTaGsXi_TQonhAmdPapXNGj0u5",
+  "when-to-sell-investor": "1UDCbpmdrMMsnOdC6QiLaHWBlPZtpiXxI",
+  "trading-donts": "1-Btqz6UMuAQwysWBX2KGgKBUaYzbiVN5",
+  "workbook": "1_djLrjMdTu7bWdbPz7LWBwNTyOzssPlb",
+  "wsp-checklist": "1OzSmS3dsVdKDCjCHLrlnR6anS1Hzinq1",
+  "every-trade-checklist": "1hxK8u51maCSqW2niQhsDP_Xyy1ZBMTMg",
+  "screener-setup": "1LAyhWR0-bpLQbT0yVNEY2OV-3uwr6KJE",
+  "continuation-screener": "1wgtoRrXSS5SI6ZqbCdwxXk5wNU1oGZ1j",
+  "advanced-stop-loss": "15qXjssMm3QQR-H1IzgI2Rjt71_ROonAl",
+  "portfolio-management": "1YFrS0D4zrc-Se1NH-WXsLNsIFdgVcYbE",
 };
 
 /* ---------- derived helpers ---------- */
