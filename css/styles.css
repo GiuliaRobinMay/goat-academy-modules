@@ -620,8 +620,6 @@ img { max-width: 100%; display: block; }
 .player-media img.poster { width: 100%; height: 100%; object-fit: cover; opacity: 0.85; }
 .player-media iframe, .player-media video { width: 100%; height: 100%; border: 0; display: block; }
 .player-media wistia-player { width: 100%; height: 100%; display: block; }
-/* holds the 16:9 box while player.js is still upgrading the element */
-.player-media wistia-player:not(:defined) { background: #050f09; padding-top: 56.25%; }
 .player-media .play-overlay {
   position: absolute; inset: 0;
   display: flex; flex-direction: column;
