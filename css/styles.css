@@ -619,6 +619,7 @@ img { max-width: 100%; display: block; }
 .player-media { position: relative; aspect-ratio: 16/9; background: #050f09; }
 .player-media img.poster { width: 100%; height: 100%; object-fit: cover; opacity: 0.85; }
 .player-media iframe, .player-media video { width: 100%; height: 100%; border: 0; display: block; }
+.player-media wistia-player { width: 100%; height: 100%; display: block; }
 .player-media .play-overlay {
   position: absolute; inset: 0;
   display: flex; flex-direction: column;

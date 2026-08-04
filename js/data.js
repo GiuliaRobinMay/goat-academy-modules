@@ -801,6 +801,38 @@ const GDRIVE_VIDEOS = {
   "advanced-stop-loss": "1YK8YN1FqV76uEEXMH16ozgxlfE6UmsBG",
 };
 
+/* ---------- production video hosting: Wistia ----------
+   lesson id → Wistia media id. Takes precedence over GDRIVE_VIDEOS
+   above, so a lesson listed here plays from Wistia and the Drive entry
+   stays only as an archival fallback. Wistia gives domain locking and
+   real playback events, so this is where the tech team should hook
+   end-of-video completion (see the note on markWatched in app.js). */
+const WISTIA_VIDEOS = {
+  "market-crashes": "jy6flhkci6",
+  "busy-fools": "eeemnfe6e9",
+  "ibkr-registration": "9bn3jop9yy",
+  "thinkorswim-help": "8lgc3hgvuo",
+  "tradevision-setup": "gr2z8unnb2",
+  "pattern-overview": "n8smlxsdis",
+  "base-pattern": "rvg7z0245d",
+  "climbing-pattern": "x2i4sradt9",
+  "tired-pattern": "bvdf47if97",
+  "downhill-pattern": "86l6ie9o1o",
+  "sector-breakouts": "9xl2sgkwax",
+  "when-to-buy-investors": "86p9ka8xpx",
+  "buy-stop-limit": "uvdpbrn3hu",
+  "buying-at-close": "gjket9ui6v",
+  "what-to-buy-entry": "9lm8p1a0b5",
+  "position-sizing": "1a8jlpysan",
+  "selling-profit-taking": "j0ylaqjpez",
+  "when-to-sell-investor": "q090pfioyw",
+  "trading-donts": "8qcikrfewg",
+  "wsp-checklist": "1d9cwsztzj",
+  "screener-setup": "6sga6vxsj1",
+  "advanced-stop-loss": "rxl4pyfzj0",
+  "portfolio-management": "jujp0v8vl6",
+};
+
 /* Custom lesson thumbnails (player posters), hosted in the shared
    Drive folder https://drive.google.com/drive/folders/1mBDSC7MD2kvO79MGt1jCnxL45HoPmpnh
    Relocate together with the videos for production. */
@@ -822,13 +854,25 @@ COURSE_SECTIONS.forEach((section) => {
       lesson.partTag = part.tag;
       lesson.partTitle = part.title;
       lesson.index = ALL_LESSONS.length;
-      lesson.types = [...new Set(lesson.blocks.map((b) => (b.type === "image" ? "text" : b.type)))];
       lesson.blocks.forEach((b) => {
-        if (b.type === "video" && b.provider === "mighty" && GDRIVE_VIDEOS[lesson.id]) {
+        if (b.type !== "video" || b.provider !== "mighty") return;
+        if (WISTIA_VIDEOS[lesson.id]) {
+          b.provider = "wistia";
+          b.mediaId = WISTIA_VIDEOS[lesson.id];
+        } else if (GDRIVE_VIDEOS[lesson.id]) {
           b.provider = "gdrive";
           b.fileId = GDRIVE_VIDEOS[lesson.id];
         }
       });
+      /* a lesson whose videos all come from another host (the Fathom
+         sessions) still gets its Wistia recording — first, so it leads
+         the player pane and the rest fall through to the extras row */
+      if (WISTIA_VIDEOS[lesson.id] && !lesson.blocks.some((b) => b.provider === "wistia")) {
+        lesson.blocks.unshift({ type: "video", provider: "wistia", mediaId: WISTIA_VIDEOS[lesson.id] });
+      }
+      /* after the block edits above, so a lesson that gains its first
+         video from Wistia is still tagged as a video lesson */
+      lesson.types = [...new Set(lesson.blocks.map((b) => (b.type === "image" ? "text" : b.type)))];
       if (GDRIVE_THUMBS[lesson.id]) {
         lesson.thumb = "https://drive.google.com/thumbnail?id=" + GDRIVE_THUMBS[lesson.id] + "&sz=w1280";
         lesson.customThumb = true; /* custom artwork also shows on the lesson cards */

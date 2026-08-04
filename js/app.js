@@ -348,6 +348,20 @@ function renderSectionList(section) {
 
 /* ---------- player pane ---------- */
 
+/* The <wistia-player> custom element is defined once by player.js
+   (loaded in index.html); each media additionally needs its own module
+   script before it can play. Loaded on demand so opening a lesson costs
+   one request, not 22. */
+function loadWistiaMedia(id) {
+  if (document.querySelector(`script[data-wistia-media="${id}"]`)) return;
+  const s = document.createElement("script");
+  s.src = `https://fast.wistia.com/embed/${id}.js`;
+  s.async = true;
+  s.type = "module";
+  s.dataset.wistiaMedia = id;
+  document.head.appendChild(s);
+}
+
 function mediaHtml(l, block, main) {
   /* interim Google Drive hosting — branded poster, click loads the
      Drive player in place (see GDRIVE_VIDEOS in data.js) */
@@ -359,6 +373,21 @@ function mediaHtml(l, block, main) {
       ${main ? thumbHtml(l, 1100, "poster") : thumbHtml(l, 800, "poster")}
       <div class="play-overlay" data-fathom>
         <div class="play-btn">${I.play}</div>
+      </div>
+    </div>`;
+  }
+  /* Wistia-hosted. Keeps the branded poster + play button rather than
+     Wistia's own thumbnail, so the custom lesson artwork still leads;
+     the click swaps in the real player (see loadWistiaMedia). */
+  if (block.provider === "wistia") {
+    return `
+    <div class="player-media" data-wistia-id="${esc(block.mediaId)}"
+         data-mighty-post-id="${esc(l.mighty.postId || "")}"
+         data-mighty-video-id="${esc(l.mighty.videoId || "")}">
+      ${main ? thumbHtml(l, 1100, "poster") : thumbHtml(l, 800, "poster")}
+      <div class="play-overlay" data-wistia>
+        <div class="play-btn">${I.play}</div>
+        ${block.title ? `<span class="hint">${esc(block.title)}</span>` : ""}
       </div>
     </div>`;
   }
@@ -512,6 +541,17 @@ function renderLessonPane(l) {
     ov.onclick = () => {
       markWatched();
       window.open(ov.dataset.open, "_blank", "noopener");
+    };
+  });
+
+  /* wistia embeds swap the poster for the player and play in place */
+  $$("#player-pane [data-wistia]").forEach((ov) => {
+    ov.onclick = () => {
+      markWatched();
+      const wrap = ov.closest(".player-media");
+      const id = wrap.dataset.wistiaId;
+      loadWistiaMedia(id);
+      wrap.innerHTML = `<wistia-player media-id="${esc(id)}" aspect="1.7777777777777777" autoplay></wistia-player>`;
     };
   });
 
