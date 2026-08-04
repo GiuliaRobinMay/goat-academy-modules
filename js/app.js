@@ -1,6 +1,6 @@
 /* =============================================================
    GOAT ACADEMY · Academy Modules — app
-   Hash routes: #/home · #/section/<sectionId>[/<lessonId>] · #/notes
+   Hash routes: #/course[/<lessonId>] · #/notes (course is the home)
    Dripped course: a lesson unlocks when every lesson before it
    is marked Completed.
    ============================================================= */
@@ -127,7 +127,7 @@ function currentRoute() {
     /* legacy links from the sectioned layout */
     return { page: "course", lessonId: parts[2] && lessonById(parts[2]) ? parts[2] : null };
   }
-  return { page: "home" };
+  return { page: "course", lessonId: null };
 }
 
 function go(hash) {
@@ -140,133 +140,7 @@ function openLesson(id) {
   go("#/course/" + encodeURIComponent(id));
 }
 
-/* =============================================================
-   Dashboard
-   ============================================================= */
 
-function renderHome() {
-  const c = Store.counts();
-  const pct = Store.percentDone();
-  const next = Store.nextUp();
-  const watching = ALL_LESSONS.filter((l) => Store.status(l.id) === "watching");
-  const notes = Store.notesList();
-
-  const R = 42, CIRC = 2 * Math.PI * R;
-
-  $("#page").innerHTML = `
-  <div class="dash-grid">
-    <div>
-      <section class="glass hero">
-        <div class="hero-text">
-          <span class="section-kicker">WELCOME BACK, ${esc(Store.member.name.toUpperCase())}</span>
-          <h2>Master the market, <em>one module at a time.</em></h2>
-          <p class="tagline">${esc(BRAND.tagline)}</p>
-        </div>
-        <button class="btn btn-primary" id="hero-resume">${I.play} ${
-          c.done === 0 && c.watching === 0 ? "Start the course" : "Continue learning"
-        }</button>
-      </section>
-
-      ${watching.length ? `
-      <div class="row-head"><h3>Continue watching</h3></div>
-      <div class="hscroll">${watching.map(lessonCardHtml).join("")}</div>` : ""}
-
-      <div class="row-head"><h3>Course map</h3></div>
-      <div class="sections-grid">
-        ${COURSE_SECTIONS.map((s) => {
-          const lessons = s.parts.flatMap((p) => p.lessons);
-          const done = lessons.filter((l) => Store.status(l.id) === "done").length;
-          const p = lessons.length ? Math.round((done / lessons.length) * 100) : 0;
-          const locked = sectionLocked(s);
-          const completed = done === lessons.length;
-          const frontier = ALL_LESSONS[unlockIdx()];
-          const active = !completed && !locked && frontier.sectionId === s.id;
-          return `
-          <div class="glass section-card ${locked ? "locked-section" : ""} ${active ? "active-section" : ""} ${completed ? "done-section" : ""}" data-sec="${s.id}">
-            ${completed ? `<span class="sec-check">${I.check}</span>` : ""}
-            <div class="tag">➽ ${esc(s.tag)}</div>
-            <h4>${esc(s.title)}</h4>
-            <div class="blurb">${esc(s.blurb || "")}</div>
-            <div class="meter"><i style="width:${p}%"></i></div>
-            <div class="count">${
-              locked
-                ? `🔒 Unlocks as you complete the previous modules`
-                : completed
-                  ? `All ${lessons.length} lessons completed`
-                  : `<b>${done}</b> / ${lessons.length} lessons completed`
-            }</div>
-          </div>`;
-        }).join("")}
-      </div>
-    </div>
-
-    <div class="side-col">
-      <section class="glass side-card">
-        <h3>Next up</h3>
-        <div class="nextup-lesson" id="nextup">
-          ${tileHtml(next)}
-          <div class="t">
-            <div class="part">${esc(next.partTag)}</div>
-            <div class="name">${esc(next.title)}</div>
-          </div>
-          <span class="resume">RESUME →</span>
-        </div>
-      </section>
-
-      <section class="glass side-card">
-        <h3>Your progress</h3>
-        <div class="progress-big">
-          <div class="ring">
-            <svg width="96" height="96" viewBox="0 0 96 96">
-              <defs>
-                <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" style="stop-color:var(--accent-deep)"/><stop offset="100%" style="stop-color:var(--accent)"/>
-                </linearGradient>
-              </defs>
-              <circle class="track" cx="48" cy="48" r="${R}" fill="none" stroke-width="9"/>
-              <circle class="fill" cx="48" cy="48" r="${R}" fill="none" stroke-width="9"
-                stroke-dasharray="${CIRC}" stroke-dashoffset="${CIRC * (1 - pct / 100)}"/>
-            </svg>
-            <span class="pct">${pct}%</span>
-          </div>
-          <div class="progress-meta">
-            <div class="big">${c.done} of ${c.all} lessons</div>
-            <div class="sub">completed so far</div>
-            <div class="mini-stats">
-              <span class="mini-stat watching"><b>${c.watching}</b> watching</span>
-              <span class="mini-stat"><b>${c.towatch}</b> to watch</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="glass side-card">
-        <h3>My notes</h3>
-        <div class="notes-stat">
-          <div>
-            <div class="n">${notes.length}</div>
-            <div class="lbl">lesson${notes.length === 1 ? "" : "s"} with notes</div>
-          </div>
-          <button class="btn btn-ghost btn-sm" data-nav="#/notes">${I.notes} Open</button>
-        </div>
-      </section>
-    </div>
-  </div>`;
-
-  $("#hero-resume").onclick = () => openLesson(next.id);
-  $("#nextup").onclick = () => openLesson(next.id);
-  $$("#page [data-nav]").forEach((b) => (b.onclick = () => go(b.dataset.nav)));
-  $$("#page .section-card").forEach((el) => {
-    el.onclick = () => {
-      const s = sectionById(el.dataset.sec);
-      const lessons = s ? s.parts.flatMap((p) => p.lessons) : [];
-      const target = lessons.find((l) => !isLocked(l) && Store.status(l.id) !== "done") || lessons.find((l) => !isLocked(l));
-      if (target) openLesson(target.id);
-      else go("#/course");
-    };
-  });
-  $$("#page .hscroll .lesson-card").forEach(bindLessonCard);
-}
 
 /* =============================================================
    Course view — all lessons in one continuous series
@@ -312,58 +186,74 @@ function bindLessonCard(el) {
   el.onclick = () => openLesson(el.dataset.lesson);
 }
 
-/* first sensible lesson to open inside a module */
-function sectionEntryLesson(section) {
-  const lessons = section.parts.flatMap((p) => p.lessons);
-  return lessons.find((l) => !isLocked(l) && Store.status(l.id) !== "done") || lessons.find((l) => !isLocked(l)) || null;
-}
-
 function renderCourseList() {
-  /* the list shows only the module the current lesson belongs to */
-  const active = lessonById(UI.activeLessonId);
-  const section = (active && sectionById(active.sectionId)) || COURSE_SECTIONS[0];
-  const lessons = section.parts.flatMap((p) => p.lessons);
-  const done = lessons.filter((l) => Store.status(l.id) === "done").length;
+  /* the whole course as one scrollable series, grouped in module
+     blocks with their part labels — lessons unlock along the way */
+  const done = ALL_LESSONS.filter((l) => Store.status(l.id) === "done").length;
+  const pct = Store.percentDone();
+  const notesCount = Store.notesList().length;
+  const R = 21, CIRC = 2 * Math.PI * R;
 
-  const idx = COURSE_SECTIONS.indexOf(section);
-  const prevS = COURSE_SECTIONS[idx - 1];
-  const nextS = COURSE_SECTIONS[idx + 1];
-  const nextSLocked = nextS && sectionLocked(nextS);
+  const modulesHtml = COURSE_SECTIONS.map((s, si) => {
+    const lessons = s.parts.flatMap((p) => p.lessons);
+    const sDone = lessons.filter((l) => Store.status(l.id) === "done").length;
+    return `
+    <div class="module-block">
+      <div class="module-head">
+        <span class="mh-num">Module ${si + 1}</span>
+        <span class="mh-title">${esc(s.tag)} · ${esc(s.title)}</span>
+        <span class="mh-progress">${sDone}/${lessons.length}</span>
+      </div>
+      ${s.parts
+        .map(
+          (p) => `
+      <div class="course-part">
+        <div class="part-head">
+          <span class="ptag">➧ ${esc(p.tag)}</span>
+          <span class="ptitle">${esc(p.title)}</span>
+          ${p.note ? `<span class="pnote">${esc(p.note)}</span>` : ""}
+        </div>
+        ${
+          UI.view === "grid"
+            ? `<div class="lesson-grid">${p.lessons.map(lessonCardHtml).join("")}</div>`
+            : `<div class="lesson-list">${p.lessons.map(lessonRowHtml).join("")}</div>`
+        }
+      </div>`
+        )
+        .join("")}
+    </div>`;
+  }).join("");
 
   $("#course-list").innerHTML = `
-    <div class="module-label">
-      <span class="section-kicker">➽ ${esc(section.tag)}</span>
-      <span class="ml-title">${esc(section.title)}</span>
-    </div>
-    <div class="filter-bar">
-      <button class="btn btn-ghost btn-sm" data-nav="#/home">${I.arrowL} Dashboard</button>
-      <span class="stat-pill"><b>${lessons.length}</b> Lessons</span>
-      <span class="stat-pill done"><b>${done}</b> Completed</span>
-      <span class="stat-pill open"><b>${lessons.length - done}</b> Open</span>
-      <div class="mod-switch">
-        <button class="btn btn-ghost btn-sm" data-mod="${prevS ? prevS.id : ""}" ${prevS ? "" : "disabled"} title="${prevS ? esc(prevS.title) : ""}">${I.arrowL}</button>
-        <button class="btn btn-ghost btn-sm" data-mod="${nextS && !nextSLocked ? nextS.id : ""}" ${nextS && !nextSLocked ? "" : "disabled"} title="${nextS ? (nextSLocked ? LOCK_HINT : esc(nextS.title)) : ""}">${nextS && nextSLocked ? I.lock : I.arrowR}</button>
+    <div class="glass list-head">
+      <div class="mini-ring">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <defs>
+            <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" style="stop-color:var(--accent-deep)"/><stop offset="100%" style="stop-color:var(--accent)"/>
+            </linearGradient>
+          </defs>
+          <circle class="track" cx="26" cy="26" r="${R}" fill="none" stroke-width="5"/>
+          <circle class="fill" cx="26" cy="26" r="${R}" fill="none" stroke-width="5"
+            stroke-dasharray="${CIRC}" stroke-dashoffset="${CIRC * (1 - pct / 100)}"/>
+        </svg>
+        <span class="pct">${pct}%</span>
       </div>
-      <div class="view-toggle">
-        <button class="${UI.view === "grid" ? "active" : ""}" data-view="grid" title="Grid view">${I.grid}</button>
-        <button class="${UI.view === "list" ? "active" : ""}" data-view="list" title="List view">${I.list}</button>
+      <div class="lh-meta">
+        <div class="big">${done} of ${ALL_LESSONS.length} lessons</div>
+        <div class="sub">completed</div>
+      </div>
+      <div class="lh-actions">
+        <button class="btn btn-ghost btn-sm" data-nav="#/notes">${I.notes} My notes${notesCount ? ` <span class="lh-badge">${notesCount}</span>` : ""}</button>
+        <div class="view-toggle">
+          <button class="${UI.view === "grid" ? "active" : ""}" data-view="grid" title="Grid view">${I.grid}</button>
+          <button class="${UI.view === "list" ? "active" : ""}" data-view="list" title="List view">${I.list}</button>
+        </div>
       </div>
     </div>
-    ${
-      UI.view === "grid"
-        ? `<div class="lesson-grid">${lessons.map(lessonCardHtml).join("")}</div>`
-        : `<div class="lesson-list">${lessons.map(lessonRowHtml).join("")}</div>`
-    }`;
+    ${modulesHtml}`;
 
   $$("#course-list [data-nav]").forEach((b) => (b.onclick = () => go(b.dataset.nav)));
-  $$("#course-list [data-mod]").forEach((b) => {
-    if (!b.dataset.mod) return;
-    b.onclick = () => {
-      const s = sectionById(b.dataset.mod);
-      const target = s && sectionEntryLesson(s);
-      if (target) openLesson(target.id);
-    };
-  });
   $$("#course-list [data-view]").forEach((b) => (b.onclick = () => { UI.view = b.dataset.view; renderCourseList(); }));
   $$("#course-list [data-lesson]").forEach(bindLessonCard);
 }
@@ -443,8 +333,7 @@ function renderLessonPane(l) {
   const pane = $("#player-pane");
   if (!l) {
     pane.innerHTML = `<div class="glass empty" style="padding:60px 20px">
-      <div class="big">🔒</div>These lessons unlock as you complete the previous modules.<br>
-      Head back to the dashboard and pick up where you left off.</div>`;
+      <div class="big">🔒</div>These lessons unlock as you complete the previous ones.</div>`;
     return;
   }
 
@@ -764,7 +653,7 @@ function renderNotes() {
       </div>
       <div class="actions">
         ${notes.length ? `<button class="btn btn-primary" id="print-all">${I.print} Print all notes</button>` : ""}
-        <button class="btn btn-ghost" data-nav="#/home">${I.home} Back to dashboard</button>
+        <button class="btn btn-ghost" data-nav="#/course">${I.course} Back to the course</button>
       </div>
     </div>
     <div class="notes-list">
@@ -851,9 +740,8 @@ function printNotes(lessonIds) {
 
 function render() {
   const route = currentRoute();
-  if (route.page === "home") renderHome();
-  else if (route.page === "course") renderCourse(route);
-  else renderNotes();
+  if (route.page === "notes") renderNotes();
+  else renderCourse(route);
   window.scrollTo({ top: 0 });
 }
 
