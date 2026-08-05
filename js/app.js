@@ -818,8 +818,9 @@ function initSettings() {
   const pop = $("#settings-pop");
   if (!btn || !pop) return;
 
-  let theme = "green";
-  try { theme = localStorage.getItem(THEME_KEY) || "green"; } catch (e) {}
+  /* Light is the Goat Academy default; members' own picks persist */
+  let theme = "light";
+  try { theme = localStorage.getItem(THEME_KEY) || "light"; } catch (e) {}
   applyTheme(theme);
 
   btn.onclick = (e) => {
