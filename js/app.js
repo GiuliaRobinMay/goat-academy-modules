@@ -256,12 +256,14 @@ function renderCourseList() {
       const cta = fresh ? "Start here" : complete ? "Watch again" : "Watch now";
       return `
       <div class="glass next-block" id="watch-next" title="${esc(next.title)}">
-        ${tileHtml(next)}
+        <div class="nb-media">
+          ${tileHtml(next)}
+          <span class="nb-cta">${I.play} ${cta}</span>
+        </div>
         <div class="nb-meta">
           <span class="nb-kicker">${kicker} · ${esc(next.partTag)}</span>
           <span class="nb-title">${esc(next.title)}</span>
         </div>
-        <span class="nb-cta">${I.play} ${cta}</span>
       </div>`;
     })()}
     <div class="glass list-head">
